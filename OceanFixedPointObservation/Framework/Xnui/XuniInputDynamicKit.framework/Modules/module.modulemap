@@ -1,0 +1,6 @@
+framework module XuniInputDynamicKit {
+  umbrella header "XuniInputDynamicKit.h"
+
+  export *
+  module * { export * }
+}

@@ -1,0 +1,24 @@
+//
+//  OceanFixedPointObservation.pch
+//  OceanFixedPointObservation
+//
+//  Created by Andex_MacBook14 on 2016/03/22.
+//  Copyright (c) 2016年 YusukeAkaizawa. All rights reserved.
+//
+
+#ifndef OceanFixedPointObservation_OceanFixedPointObservation_pch
+#define OceanFixedPointObservation_OceanFixedPointObservation_pch
+
+#define RGB(r, g, b)[UIColor colorWithRed:(r)/255.0 green:(g)/255.0 blue:(b)/255.0 alpha:1]
+#define RGBA(r, g, b, a)[UIColor colorWithRed:(r)/255.0 green:(g)/255.0 blue:(b)/255.0 alpha:(a)/255.0]
+
+#import <QuartzCore/QuartzCore.h>
+#import <CoreLocation/CoreLocation.h>
+#import <Foundation/Foundation.h>
+#import <UIKit/UIKit.h>
+
+#import "SVProgressHUD.h"
+#import "PHPConnection.h"
+#import "Common.h"
+#import "CustomUIAlertController.h"
+#endif
