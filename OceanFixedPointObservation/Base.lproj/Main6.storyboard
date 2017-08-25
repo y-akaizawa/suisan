@@ -2775,13 +2775,35 @@
                                             <action selector="addBtn:" destination="B8r-Fx-ckc" eventType="touchUpInside" id="kLv-H9-ZNW"/>
                                         </connections>
                                     </button>
-                                    <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" misplaced="YES" text="" textAlignment="natural" lineBreakMode="tailTruncation" numberOfLines="0" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" id="x3I-Nz-hR2">
-                                        <rect key="frame" x="40" y="3" width="200" height="44"/>
+                                    <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" misplaced="YES" text="" textAlignment="center" lineBreakMode="tailTruncation" numberOfLines="0" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" id="x3I-Nz-hR2">
+                                        <rect key="frame" x="97" y="3" width="180" height="44"/>
                                         <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
                                         <fontDescription key="fontDescription" type="system" pointSize="16"/>
                                         <color key="textColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
                                         <nil key="highlightedColor"/>
                                     </label>
+                                    <button opaque="NO" contentMode="scaleToFill" misplaced="YES" contentHorizontalAlignment="center" contentVerticalAlignment="center" lineBreakMode="middleTruncation" id="enf-gD-5Rx">
+                                        <rect key="frame" x="72" y="2" width="44" height="44"/>
+                                        <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
+                                        <inset key="contentEdgeInsets" minX="5" minY="5" maxX="5" maxY="5"/>
+                                        <state key="normal" title="Button" image="lefticon.png">
+                                            <color key="titleShadowColor" red="0.5" green="0.5" blue="0.5" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
+                                        </state>
+                                        <connections>
+                                            <action selector="leftBtn:" destination="B8r-Fx-ckc" eventType="touchUpInside" id="v0G-Nd-ofn"/>
+                                        </connections>
+                                    </button>
+                                    <button opaque="NO" contentMode="scaleToFill" misplaced="YES" contentHorizontalAlignment="center" contentVerticalAlignment="center" lineBreakMode="middleTruncation" id="w6K-BS-tTR">
+                                        <rect key="frame" x="265" y="3" width="44" height="44"/>
+                                        <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
+                                        <inset key="contentEdgeInsets" minX="5" minY="5" maxX="5" maxY="5"/>
+                                        <state key="normal" title="Button" image="righticon.png">
+                                            <color key="titleShadowColor" red="0.5" green="0.5" blue="0.5" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
+                                        </state>
+                                        <connections>
+                                            <action selector="rightBtn:" destination="B8r-Fx-ckc" eventType="touchUpInside" id="qHN-F2-p2o"/>
+                                        </connections>
+                                    </button>
                                 </subviews>
                                 <color key="backgroundColor" red="0.31372549020000001" green="0.74509803919999995" blue="1" alpha="1" colorSpace="calibratedRGB"/>
                             </view>
@@ -2791,6 +2813,8 @@
                     <connections>
                         <outlet property="dateLabel" destination="x3I-Nz-hR2" id="H6I-ur-EVD"/>
                         <outlet property="diaryTableView" destination="NpV-IO-4sJ" id="pso-ag-Z8G"/>
+                        <outlet property="leftBtn" destination="enf-gD-5Rx" id="9xb-k7-reB"/>
+                        <outlet property="rightBtn" destination="w6K-BS-tTR" id="dqm-LX-9Je"/>
                     </connections>
                 </viewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="Fwu-63-oQo" userLabel="First Responder" sceneMemberID="firstResponder"/>

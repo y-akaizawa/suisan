@@ -14,23 +14,16 @@
 @end
 
 @implementation DiaryViewController
-
+int page;
 - (void)viewDidLoad {
     [super viewDidLoad];
-    self.diaryAry = [[NSMutableArray alloc] initWithCapacity:0];
     self.diaryTableView.delegate = self;
     self.diaryTableView.dataSource = self;
+    page = 1;
+    self.leftBtn.hidden = YES;
 }
 - (void)viewWillAppear:(BOOL)animated {
-    self.diaryAry = [PHPConnection getAllDiaryData:@"1" page1count:@"100"];
-    
-    if (self.diaryAry.count > 0) {
-        NSString *staTime = [NSString stringWithFormat:@"%@",[[self.diaryAry objectAtIndex:0] objectForKey:@"ASSAYDATE"]];
-        NSString *endTime = [NSString stringWithFormat:@"%@",[[self.diaryAry objectAtIndex:self.diaryAry.count-1] objectForKey:@"ASSAYDATE"]];
-        
-        self.dateLabel.text = [NSString stringWithFormat:@"%@年%@月%@日〜\n%@年%@月%@日",[endTime substringWithRange:NSMakeRange(0, 4)],[endTime substringWithRange:NSMakeRange(4, 2)],[endTime substringWithRange:NSMakeRange(6, 2)],[staTime substringWithRange:NSMakeRange(0, 4)],[staTime substringWithRange:NSMakeRange(4, 2)],[staTime substringWithRange:NSMakeRange(6, 2)]];
-    }
-    [self.diaryTableView reloadData];
+    [self diarySet:page];
     [super viewWillAppear:animated];
 }
 -(void)viewDidAppear:(BOOL)animated{
@@ -41,6 +34,20 @@
     [super didReceiveMemoryWarning];
     // Dispose of any resources that can be recreated.
 }
+-(void)diarySet:(int)pageCount{
+    self.diaryAry = [[NSMutableArray alloc] initWithCapacity:0];
+    NSString *page = [NSString stringWithFormat:@"%d",pageCount];
+    self.diaryAry = [PHPConnection getAllDiaryData:page page1count:@"10"];
+    
+    if (self.diaryAry.count > 0) {
+        NSString *staTime = [NSString stringWithFormat:@"%@",[[self.diaryAry objectAtIndex:0] objectForKey:@"ASSAYDATE"]];
+        NSString *endTime = [NSString stringWithFormat:@"%@",[[self.diaryAry objectAtIndex:self.diaryAry.count-1] objectForKey:@"ASSAYDATE"]];
+        
+        self.dateLabel.text = [NSString stringWithFormat:@"%@年%@月%@日〜\n%@年%@月%@日",[endTime substringWithRange:NSMakeRange(0, 4)],[endTime substringWithRange:NSMakeRange(4, 2)],[endTime substringWithRange:NSMakeRange(6, 2)],[staTime substringWithRange:NSMakeRange(0, 4)],[staTime substringWithRange:NSMakeRange(4, 2)],[staTime substringWithRange:NSMakeRange(6, 2)]];
+    }
+    [self.diaryTableView reloadData];
+}
+
 
 #pragma mark-テーブルビューデリゲート
 //セッション
@@ -118,4 +125,20 @@
     [self presentViewController:diaryInputViewController animated:YES completion:nil];
 }
 
+- (IBAction)leftBtn:(id)sender {
+    page--;
+    self.rightBtn.hidden = NO;
+    [self diarySet:page];
+    if (page == 1) {
+        self.leftBtn.hidden = YES;
+    }
+}
+- (IBAction)rightBtn:(id)sender {
+    page++;
+    self.leftBtn.hidden = NO;
+    [self diarySet:page];
+    if (self.diaryAry.count < 10) {
+        self.rightBtn.hidden = YES;
+    }
+}
 @end

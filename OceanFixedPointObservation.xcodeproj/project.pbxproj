@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		EF0030041F4CFD0B00FE9BC1 /* Reachability.m in Sources */ = {isa = PBXBuildFile; fileRef = EF0030031F4CFD0B00FE9BC1 /* Reachability.m */; };
 		EF0042B61CA0CD5500C24E64 /* AVFoundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = EF0042B51CA0CD5500C24E64 /* AVFoundation.framework */; };
 		EF0042B81CA0CD6A00C24E64 /* CoreData.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = EF0042B71CA0CD6A00C24E64 /* CoreData.framework */; };
 		EF0042BA1CA0CD7A00C24E64 /* CoreLocation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = EF0042B91CA0CD7A00C24E64 /* CoreLocation.framework */; };
@@ -264,6 +265,8 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
+		EF0030021F4CFD0B00FE9BC1 /* Reachability.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Reachability.h; sourceTree = "<group>"; };
+		EF0030031F4CFD0B00FE9BC1 /* Reachability.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = Reachability.m; sourceTree = "<group>"; };
 		EF0042B51CA0CD5500C24E64 /* AVFoundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AVFoundation.framework; path = System/Library/Frameworks/AVFoundation.framework; sourceTree = SDKROOT; };
 		EF0042B71CA0CD6A00C24E64 /* CoreData.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreData.framework; path = System/Library/Frameworks/CoreData.framework; sourceTree = SDKROOT; };
 		EF0042B91CA0CD7A00C24E64 /* CoreLocation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreLocation.framework; path = System/Library/Frameworks/CoreLocation.framework; sourceTree = SDKROOT; };
@@ -513,6 +516,15 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		EF0030011F4CFC9F00FE9BC1 /* Reachability */ = {
+			isa = PBXGroup;
+			children = (
+				EF0030021F4CFD0B00FE9BC1 /* Reachability.h */,
+				EF0030031F4CFD0B00FE9BC1 /* Reachability.m */,
+			);
+			path = Reachability;
+			sourceTree = "<group>";
+		};
 		EF0042A11CA0CA9100C24E64 /* Xnui */ = {
 			isa = PBXGroup;
 			children = (
@@ -768,6 +780,7 @@
 				EFAB57FE1C9B81A200DFC8B4 /* License.h */,
 				EFAB57FF1C9B81A200DFC8B4 /* License.m */,
 				EF2CE0A01D20AACA00A47F27 /* CustomView */,
+				EF0030011F4CFC9F00FE9BC1 /* Reachability */,
 				EF8018731CB5ED6600C5C738 /* SVProgressHUD */,
 				EF0042CF1CA0FC7700C24E64 /* Common */,
 				EF7BA9F41C9A3C330007A7CB /* ViewController */,
@@ -1162,6 +1175,7 @@
 				EF54EEED1EE10AFD00A02DC8 /* CustomUIAlertController.m in Sources */,
 				EF8018811CB5ED7600C5C738 /* SVProgressHUD.m in Sources */,
 				EF3F86A81ECBE35800FB503C /* XuniFlexGridDesignTimeStoryboardSupport.m in Sources */,
+				EF0030041F4CFD0B00FE9BC1 /* Reachability.m in Sources */,
 				EF368A571ED3F353000FEA23 /* DiaryData.m in Sources */,
 				EFBFD3DD1ECE7C25005949C7 /* ChatViewController.m in Sources */,
 				EF7BA9FC1C9A43710007A7CB /* MapViewController.m in Sources */,
