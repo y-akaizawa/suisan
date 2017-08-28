@@ -284,7 +284,7 @@ BOOL chartDiaryBool;
     
     [Common showSVProgressHUD:@""];
     dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^{
-        NSMutableArray *eventAry = [PHPConnection getEventId:aDataSetCD dataSetCD2:bDataSetCD dataSetCD3:cDataSetCD dataSetCD4:dDataSetCD targetDate:dataString targetDateflg:tdflg page:@"1" page1count:@"100"];
+        NSMutableArray *eventAry1 = [PHPConnection getEventId:aDataSetCD dataSetCD2:bDataSetCD dataSetCD3:cDataSetCD dataSetCD4:dDataSetCD targetDate:dataString targetDateflg:tdflg page:@"1" page1count:@"100"];
         NSMutableArray *chartData = [ChartData chartData:dataString heikin:heikin tdflg:tdflg pageCount:self.pageCount];
         NSMutableArray *unitAry = [PHPConnection getUnitData:aDataSetCD dataSetCD2:bDataSetCD dataSetCD3:cDataSetCD dataSetCD4:dDataSetCD];
         
@@ -295,6 +295,11 @@ BOOL chartDiaryBool;
             valAry = [PHPConnection getTableHeikinData14_2:aDataSetCD dataSetCD2:bDataSetCD dataSetCD3:cDataSetCD dataSetCD4:dDataSetCD targetDate:dataString targetDateflg:tdflg heikin:heikin];
         }
         dispatch_async(dispatch_get_main_queue(), ^{
+            NSMutableArray *eventAry = [[NSMutableArray alloc] initWithCapacity:0];
+            for(NSDictionary *objData in [eventAry1 reverseObjectEnumerator]){
+                [eventAry addObject: objData];
+            }
+            
             XuniSeries *panel1;
             XuniSeries *panel2;
             XuniSeries *panel3;
@@ -470,6 +475,8 @@ BOOL chartDiaryBool;
                 
             //単位が複数あった場合
             }else{
+                NSLog(@"eventAry = %@",eventAry);
+                NSLog(@"chartData = %@",chartData);
                 //軸を増やす用のパーツを用意する。(最大4本)
                 //XuniAxis *axis1;
                 XuniAxis *axis2;
@@ -801,7 +808,7 @@ BOOL chartDiaryBool;
 {
     FlexChart *chart = (FlexChart *)[self.view viewWithTag:chartTag];
     XuniChartHitTestInfo *hitTest = [chart hitTest:point];
-    NSLog(@"%f : %f",hitTest.point.x,hitTest.point.y);
+    //NSLog(@"%f : %f",hitTest.point.x,hitTest.point.y);
     return false;
 }
 
