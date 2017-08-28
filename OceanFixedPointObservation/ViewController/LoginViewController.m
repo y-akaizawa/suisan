@@ -43,7 +43,6 @@
     dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^{
         NSDictionary *loginDic = [PHPConnection login:groupId username:self.nameTextFiled.text];
         dispatch_async(dispatch_get_main_queue(), ^{
-            NSLog(@"loginDic = %@",loginDic);
             NSString *status = @"1";
             if (loginDic.count == 0) {
                 status = @"1";
@@ -87,22 +86,23 @@
     // 最大入力文字数
     int maxInputLength = 4;
     
-    // 入力済みのテキストを取得
-    NSMutableString *str = [textField.text mutableCopy];
-    // 入力済みのテキストと入力が行われたテキストを結合
-    [str replaceCharactersInRange:range withString:string];
-    NSInteger srtCount = [textField.text length] + [string length];
-    if (srtCount > maxInputLength) {
-        // ※ここに文字数制限を超えたことを通知する処理を追加
+    NSString *newString = [textField.text stringByReplacingCharactersInRange:range withString:string];
+    if ([newString length] >= maxInputLength) {
         if (textField.tag != 104) {
+            textField.text = newString;
             UITextField *nextText = (UITextField *)[self.view viewWithTag:textField.tag+1];
             [nextText becomeFirstResponder];
+        }else{
+            textField.text = newString;
+            [textField resignFirstResponder];
         }
         return NO;
     }
     
+    
     return YES;
 }
+
 - (IBAction)closeBtn:(id)sender {
     //強制終了はリジェクト対象のようだ
     exit(0);

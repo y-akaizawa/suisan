@@ -37,16 +37,16 @@
     self.groupId3.tag =108;
     self.groupId4.tag =109;
     
-    self.userId1.text = @"44S1";
-    self.userId2.text = @"BAaO";
-    self.userId3.text = @"L6uh";
-    self.userId4.text = @"Psmb";
-    self.userId5.text = @"zLHX";
-    
-    self.groupId1.text = @"0H5Y";
-    self.groupId2.text = @"XDH3";
-    self.groupId3.text = @"1U0A";
-    self.groupId4.text = @"YB77";
+//    self.userId1.text = @"44S1";
+//    self.userId2.text = @"BAaO";
+//    self.userId3.text = @"L6uh";
+//    self.userId4.text = @"Psmb";
+//    self.userId5.text = @"zLHX";
+//    
+//    self.groupId1.text = @"0H5Y";
+//    self.groupId2.text = @"XDH3";
+//    self.groupId3.text = @"1U0A";
+//    self.groupId4.text = @"YB77";
     //ユーザー１
 //    self.userId1.text = @"g5Uf";
 //    self.userId2.text = @"9Glu";
@@ -59,7 +59,7 @@
 //    self.userId3.text = @"f896";
 //    self.userId4.text = @"jXjQ";
 //    self.userId5.text = @"pIXx";
-    
+    //４
 //    self.groupId1.text = @"8RK9";
 //    self.groupId2.text = @"EEVJ";
 //    self.groupId3.text = @"HAT3";
@@ -95,7 +95,6 @@
     // キーボードの top を取得する
     NSDictionary *userInfo = [notification userInfo];
     CGRect keyboardRect = [[userInfo objectForKey:UIKeyboardFrameEndUserInfoKey] CGRectValue];
-    NSLog(@"aaaaaaaaaaaaaaaaaa %f,%f,%f,%f",keyboardRect.origin.x,keyboardRect.origin.y,keyboardRect.size.height,keyboardRect.size.width);
     // アニメーション
     [UIView animateWithDuration:0.5f
                           delay:0.0f
@@ -167,25 +166,19 @@
     // 最大入力文字数
     int maxInputLength = 4;
     
-    // 入力済みのテキストを取得
-    NSMutableString *str = [textField.text mutableCopy];
+    NSString *newString = [textField.text stringByReplacingCharactersInRange:range withString:string];
     
-    // 入力済みのテキストと入力が行われたテキストを結合
-    [str replaceCharactersInRange:range withString:string];
-    
-    NSLog(@"text2=%lu",(unsigned long)[textField.text length]);
-    NSLog(@"text2=%lu",(unsigned long)[string length]);
-    NSInteger srtCount = [textField.text length] + [string length];
-    NSLog(@"srtCount=%lu",(unsigned long)srtCount);
-    if (srtCount > maxInputLength) {
-        // ※ここに文字数制限を超えたことを通知する処理を追加
+    if ([newString length] >= maxInputLength) {
         if (textField.tag != 109) {
+            textField.text = newString;
             UITextField *nextText = (UITextField *)[self.view viewWithTag:textField.tag+1];
             [nextText becomeFirstResponder];
+        }else{
+            textField.text = newString;
+            [textField resignFirstResponder];
         }
         return NO;
     }
-    
     return YES;
 }
 - (IBAction)closeBtn:(id)sender {
