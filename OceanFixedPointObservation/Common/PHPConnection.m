@@ -104,6 +104,7 @@ NSUserDefaults *userDefaults;
     NSString *errorString = [error localizedDescription];
     if(0 < [errorString length]) {
         NSLog(@"失敗: %@", errorString);
+        return nil;
     }
     // 通信成功
     else {
@@ -139,6 +140,7 @@ NSUserDefaults *userDefaults;
     NSString *errorString = [error localizedDescription];
     if(0 < [errorString length]) {
         NSLog(@"失敗: %@", errorString);
+        return nil;
     }
     // 通信成功
     else {
@@ -173,6 +175,7 @@ NSUserDefaults *userDefaults;
     NSString *errorString = [error localizedDescription];
     if(0 < [errorString length]) {
         NSLog(@"失敗: %@", errorString);
+        return nil;
     }
     // 通信成功
     else {
@@ -201,6 +204,7 @@ NSUserDefaults *userDefaults;
     NSString *errorString = [error localizedDescription];
     if(0 < [errorString length]) {
         NSLog(@"失敗: %@", errorString);
+        return nil;
     }
     // 通信成功
     else {
@@ -229,6 +233,7 @@ NSUserDefaults *userDefaults;
     NSString *errorString = [error localizedDescription];
     if(0 < [errorString length]) {
         NSLog(@"失敗: %@", errorString);
+        return nil;
     }
     // 通信成功
     else {
@@ -265,6 +270,7 @@ NSUserDefaults *userDefaults;
     NSString *errorString = [error localizedDescription];
     if(0 < [errorString length]) {
         NSLog(@"失敗: %@", errorString);
+        return nil;
     }
     // 通信成功
     else {
@@ -297,6 +303,7 @@ NSUserDefaults *userDefaults;
     NSString *errorString = [error localizedDescription];
     if(0 < [errorString length]) {
         NSLog(@"失敗: %@", errorString);
+        return nil;
     }
     // 通信成功
     else {
@@ -366,6 +373,7 @@ NSUserDefaults *userDefaults;
     NSString *errorString = [error localizedDescription];
     if(0 < [errorString length]) {
         NSLog(@"失敗: %@", errorString);
+        return nil;
     }
     // 通信成功
     else {
@@ -402,6 +410,7 @@ NSUserDefaults *userDefaults;
     NSString *errorString = [error localizedDescription];
     if(0 < [errorString length]) {
         NSLog(@"失敗: %@", errorString);
+        return nil;
     }
     // 通信成功
     else {
@@ -439,6 +448,7 @@ NSUserDefaults *userDefaults;
     NSString *errorString = [error localizedDescription];
     if(0 < [errorString length]) {
         NSLog(@"失敗: %@", errorString);
+        return nil;
     }
     // 通信成功
     else {
@@ -475,6 +485,7 @@ NSUserDefaults *userDefaults;
     NSString *errorString = [error localizedDescription];
     if(0 < [errorString length]) {
         NSLog(@"失敗: %@", errorString);
+        return nil;
     }
     // 通信成功
     else {
@@ -514,6 +525,7 @@ NSUserDefaults *userDefaults;
     NSString *errorString = [error localizedDescription];
     if(0 < [errorString length]) {
         NSLog(@"失敗: %@", errorString);
+        return nil;
     }
     // 通信成功
     else {
@@ -549,6 +561,7 @@ NSUserDefaults *userDefaults;
     NSString *errorString = [error localizedDescription];
     if(0 < [errorString length]) {
         NSLog(@"失敗: %@", errorString);
+        return nil;
     }
     // 通信成功
     else {
@@ -580,6 +593,7 @@ NSUserDefaults *userDefaults;
     NSString *errorString = [error localizedDescription];
     if(0 < [errorString length]) {
         NSLog(@"失敗: %@", errorString);
+        return nil;
     }
     // 通信成功
     else {
@@ -611,6 +625,7 @@ NSUserDefaults *userDefaults;
     NSString *errorString = [error localizedDescription];
     if(0 < [errorString length]) {
         NSLog(@"失敗: %@", errorString);
+        return nil;
     }
     // 通信成功
     else {
@@ -646,6 +661,7 @@ NSUserDefaults *userDefaults;
     NSString *errorString = [error localizedDescription];
     if(0 < [errorString length]) {
         NSLog(@"失敗: %@", errorString);
+        return nil;
     }
     // 通信成功
     else {
@@ -679,6 +695,7 @@ NSUserDefaults *userDefaults;
     NSString *errorString = [error localizedDescription];
     if(0 < [errorString length]) {
         NSLog(@"失敗: %@", errorString);
+        return nil;
     }
     // 通信成功
     else {
@@ -715,6 +732,7 @@ NSUserDefaults *userDefaults;
     NSString *errorString = [error localizedDescription];
     if(0 < [errorString length]) {
         NSLog(@"失敗: %@", errorString);
+        return nil;
     }
     // 通信成功
     else {
@@ -746,6 +764,7 @@ NSUserDefaults *userDefaults;
     NSString *errorString = [error localizedDescription];
     if(0 < [errorString length]) {
         NSLog(@"失敗: %@", errorString);
+        return nil;
     }
     // 通信成功
     else {
@@ -778,6 +797,7 @@ NSUserDefaults *userDefaults;
     NSString *errorString = [error localizedDescription];
     if(0 < [errorString length]) {
         NSLog(@"失敗: %@", errorString);
+        return nil;
     }
     // 通信成功
     else {
@@ -809,6 +829,7 @@ NSUserDefaults *userDefaults;
     NSString *errorString = [error localizedDescription];
     if(0 < [errorString length]) {
         NSLog(@"失敗: %@", errorString);
+        return nil;
     }
     // 通信成功
     else {
@@ -836,6 +857,7 @@ NSUserDefaults *userDefaults;
     NSString *errorString = [error localizedDescription];
     if(0 < [errorString length]) {
         NSLog(@"失敗: %@", errorString);
+        return nil;
     }
     // 通信成功
     else {
@@ -867,6 +889,7 @@ NSUserDefaults *userDefaults;
     NSString *errorString = [error localizedDescription];
     if(0 < [errorString length]) {
         NSLog(@"失敗: %@", errorString);
+        return nil;
     }
     // 通信成功
     else {
@@ -896,6 +919,7 @@ NSUserDefaults *userDefaults;
     NSString *errorString = [error localizedDescription];
     if(0 < [errorString length]) {
         NSLog(@"失敗: %@", errorString);
+        return nil;
     }
     // 通信成功
     else {
@@ -921,6 +945,7 @@ NSUserDefaults *userDefaults;
     NSString *errorString = [error localizedDescription];
     if(0 < [errorString length]) {
         NSLog(@"失敗: %@", errorString);
+        return nil;
     }
     // 通信成功
     else {
@@ -950,6 +975,7 @@ NSUserDefaults *userDefaults;
     NSString *errorString = [error localizedDescription];
     if(0 < [errorString length]) {
         NSLog(@"失敗: %@", errorString);
+        return nil;
     }
     // 通信成功
     else {
@@ -980,6 +1006,7 @@ NSUserDefaults *userDefaults;
     NSString *errorString = [error localizedDescription];
     if(0 < [errorString length]) {
         NSLog(@"失敗: %@", errorString);
+        return nil;
     }
     // 通信成功
     else {
@@ -1009,6 +1036,7 @@ NSUserDefaults *userDefaults;
     NSString *errorString = [error localizedDescription];
     if(0 < [errorString length]) {
         NSLog(@"失敗: %@", errorString);
+        return nil;
     }
     // 通信成功
     else {
@@ -1037,6 +1065,7 @@ NSUserDefaults *userDefaults;
     NSString *errorString = [error localizedDescription];
     if(0 < [errorString length]) {
         NSLog(@"失敗: %@", errorString);
+        return nil;
     }
     // 通信成功
     else {
@@ -1062,6 +1091,7 @@ NSUserDefaults *userDefaults;
     NSString *errorString = [error localizedDescription];
     if(0 < [errorString length]) {
         NSLog(@"失敗: %@", errorString);
+        return nil;
     }
     // 通信成功
     else {
@@ -1087,6 +1117,7 @@ NSUserDefaults *userDefaults;
     NSString *errorString = [error localizedDescription];
     if(0 < [errorString length]) {
         NSLog(@"失敗: %@", errorString);
+        return nil;
     }
     // 通信成功
     else {
@@ -1116,6 +1147,7 @@ NSUserDefaults *userDefaults;
     NSString *errorString = [error localizedDescription];
     if(0 < [errorString length]) {
         NSLog(@"失敗: %@", errorString);
+        return nil;
     }
     // 通信成功
     else {
@@ -1144,6 +1176,7 @@ NSUserDefaults *userDefaults;
     NSString *errorString = [error localizedDescription];
     if(0 < [errorString length]) {
         NSLog(@"失敗: %@", errorString);
+        return nil;
     }
     // 通信成功
     else {
@@ -1171,6 +1204,7 @@ NSUserDefaults *userDefaults;
     NSString *errorString = [error localizedDescription];
     if(0 < [errorString length]) {
         NSLog(@"失敗: %@", errorString);
+        return nil;
     }
     // 通信成功
     else {
@@ -1198,6 +1232,7 @@ NSUserDefaults *userDefaults;
     NSString *errorString = [error localizedDescription];
     if(0 < [errorString length]) {
         NSLog(@"失敗: %@", errorString);
+        return nil;
     }
     // 通信成功
     else {
@@ -1225,6 +1260,7 @@ NSUserDefaults *userDefaults;
     NSString *errorString = [error localizedDescription];
     if(0 < [errorString length]) {
         NSLog(@"失敗: %@", errorString);
+        return nil;
     }
     // 通信成功
     else {
@@ -1251,6 +1287,7 @@ NSUserDefaults *userDefaults;
     NSString *errorString = [error localizedDescription];
     if(0 < [errorString length]) {
         NSLog(@"失敗: %@", errorString);
+        return nil;
     }
     // 通信成功
     else {
@@ -1277,6 +1314,7 @@ NSUserDefaults *userDefaults;
     NSString *errorString = [error localizedDescription];
     if(0 < [errorString length]) {
         NSLog(@"失敗: %@", errorString);
+        return nil;
     }
     // 通信成功
     else {
@@ -1302,6 +1340,7 @@ NSUserDefaults *userDefaults;
                                                      error:&error];
     NSString *errorString = [error localizedDescription];
     if(0 < [errorString length]) {
+        return nil;
     }
     // 通信成功
     else {
@@ -1327,6 +1366,7 @@ NSUserDefaults *userDefaults;
                                                      error:&error];
     NSString *errorString = [error localizedDescription];
     if(0 < [errorString length]) {
+        return nil;
     }
     // 通信成功
     else {
@@ -1379,6 +1419,7 @@ NSUserDefaults *userDefaults;
                                                      error:&error];
     NSString *errorString = [error localizedDescription];
     if(0 < [errorString length]) {
+        return nil;
     }
     // 通信成功
     else {
@@ -1404,6 +1445,7 @@ NSUserDefaults *userDefaults;
                                                      error:&error];
     NSString *errorString = [error localizedDescription];
     if(0 < [errorString length]) {
+        return nil;
     }
     // 通信成功
     else {
@@ -1429,6 +1471,7 @@ NSUserDefaults *userDefaults;
                                                      error:&error];
     NSString *errorString = [error localizedDescription];
     if(0 < [errorString length]) {
+        return nil;
     }
     // 通信成功
     else {
