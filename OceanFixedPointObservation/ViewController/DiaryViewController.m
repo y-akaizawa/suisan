@@ -21,6 +21,7 @@ int page;
     self.diaryTableView.dataSource = self;
     page = 1;
     self.leftBtn.hidden = YES;
+    self.rightBtn.hidden = YES;
 }
 - (void)viewWillAppear:(BOOL)animated {
     [self diarySet:page];
@@ -38,6 +39,10 @@ int page;
     self.diaryAry = [[NSMutableArray alloc] initWithCapacity:0];
     NSString *page = [NSString stringWithFormat:@"%d",pageCount];
     self.diaryAry = [PHPConnection getAllDiaryData:page page1count:@"10"];
+    
+    if (self.diaryAry.count > 10) {
+        self.rightBtn.hidden = NO;
+    }
     
     if (self.diaryAry.count > 0) {
         NSString *staTime = [NSString stringWithFormat:@"%@",[[self.diaryAry objectAtIndex:0] objectForKey:@"ASSAYDATE"]];
