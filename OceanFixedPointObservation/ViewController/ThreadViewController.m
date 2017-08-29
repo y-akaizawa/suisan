@@ -17,8 +17,12 @@
 
 @implementation ThreadViewController
 NSMutableDictionary *roomDic;
+BOOL addThread;//スレッド作成したかどうか
+NSString *threadName = @"";
+
 - (void)viewDidLoad {
     [super viewDidLoad];
+    addThread = NO;
     self.addBtn.layer.cornerRadius = 10;
     self.addBtn.clipsToBounds = true;
     self.RoomTableView.delegate = self;
@@ -148,10 +152,10 @@ NSMutableDictionary *roomDic;
                                                   style:UIAlertActionStyleDefault
                                                 handler:^(UIAlertAction *action) {
                                                     NSLog(@"OK");
-                                                    
+                                                    [self addThread];
                                                 }]];
         [alert addAction:[UIAlertAction actionWithTitle:@"キャンセル"
-                                                  style:UIAlertActionStyleDestructive
+                                                  style:UIAlertActionStyleCancel
                                                 handler:^(UIAlertAction *action) {
                                                     NSLog(@"Cancel");
                                                     
@@ -168,7 +172,12 @@ NSMutableDictionary *roomDic;
 - (void)textFieldDidEndEditing:(UITextField *)textField
 {
     NSLog(@"%@",textField.text);
-    NSDictionary *dic = [PHPConnection addThread:textField.text];
+    threadName = textField.text;
+    
+}
+-(void)addThread{
+    NSLog(@"threadName = %@",threadName);
+    NSDictionary *dic = [PHPConnection addThread:threadName];
     NSLog(@"dic＝%@",dic);
     if ([Common checkErrorMessage:dic] == YES) {
         UIAlertController *alertController = [UIAlertController alertControllerWithTitle:@"エラー" message:[NSString stringWithFormat:@"%@",[dic objectForKey:@"ERRORMESSAGE"]] preferredStyle:UIAlertControllerStyleAlert];
