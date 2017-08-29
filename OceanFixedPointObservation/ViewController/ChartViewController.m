@@ -307,6 +307,10 @@ BOOL chartDiaryBool;
             NSString *unitTypeStr = @"";
             NSString *unitStr = @"";
             NSDictionary *unitDic = [unitAry objectAtIndex:0];
+            BOOL chartBool1 = YES;
+            BOOL chartBool2 = YES;
+            BOOL chartBool3 = YES;
+            BOOL chartBool4 = YES;
             
             //単位が１個の場合(これまで通り)
             if ([[unitDic objectForKey:@"UNITCOUNT"]  isEqual: @"1"]) {
@@ -321,7 +325,7 @@ BOOL chartDiaryBool;
                     
                     if (page1 == panelInt) {
                         if ([[userDataDic objectForKey:@"DATASETCD"]  isEqual: @"0"]) {
-                            
+                            chartBool1 = NO;
                         }else{
                             panel1 = [[XuniSeries alloc] initForChart:chart binding:@"panelANum, panelANum" name:[NSString stringWithFormat:@"%@ %@ %@",[userDataDic objectForKey:@"AREANM"],[userDataDic objectForKey:@"DATATYPE"],[userDataDic objectForKey:@"POINT"]]];
                             [chart.series addObject:panel1];
@@ -334,7 +338,7 @@ BOOL chartDiaryBool;
                     }
                     if (page2 == panelInt) {
                         if ([[userDataDic objectForKey:@"DATASETCD"]  isEqual: @"0"]) {
-                            
+                            chartBool2 = NO;
                         }else{
                             panel2 = [[XuniSeries alloc] initForChart:chart binding:@"panelBNum, panelBNum" name:[NSString stringWithFormat:@"%@ %@ %@",[userDataDic objectForKey:@"AREANM"],[userDataDic objectForKey:@"DATATYPE"],[userDataDic objectForKey:@"POINT"]]];
                             [chart.series addObject:panel2];
@@ -347,7 +351,7 @@ BOOL chartDiaryBool;
                     }
                     if (page3 == panelInt) {
                         if ([[userDataDic objectForKey:@"DATASETCD"]  isEqual: @"0"]) {
-                            
+                            chartBool3 = NO;
                         }else{
                             panel3 = [[XuniSeries alloc] initForChart:chart binding:@"panelCNum, panelCNum" name:[NSString stringWithFormat:@"%@ %@ %@",[userDataDic objectForKey:@"AREANM"],[userDataDic objectForKey:@"DATATYPE"],[userDataDic objectForKey:@"POINT"]]];
                             [chart.series addObject:panel3];
@@ -360,7 +364,7 @@ BOOL chartDiaryBool;
                     }
                     if (page4 == panelInt) {
                         if ([[userDataDic objectForKey:@"DATASETCD"]  isEqual: @"0"]) {
-                            
+                            chartBool4 = NO;
                         }else{
                             panel4 = [[XuniSeries alloc] initForChart:chart binding:@"panelDNum, panelDNum" name:[NSString stringWithFormat:@"%@ %@ %@",[userDataDic objectForKey:@"AREANM"],[userDataDic objectForKey:@"DATATYPE"],[userDataDic objectForKey:@"POINT"]]];
                             [chart.series addObject:panel4];
@@ -427,40 +431,50 @@ BOOL chartDiaryBool;
                         aryCount++;
                     }
                     for(int i = 0; i < chartData.count; i++){
+                        int chartCount = 0;
+                        if (chartBool1 == YES) {
+                            chartCount++;
+                        }
                         if ([[valAry objectAtIndex:i] objectForKey:@"VAL1"] != [NSNull null]) {
                             for(int i2 = 0; i2 < eventAry1.count; i2++){
                                 if (i == [[eventAry1 objectAtIndex:i2] intValue]) {
                                     double yp = [[[valAry objectAtIndex:i] objectForKey:@"VAL1"] doubleValue];
                                     NSLog(@"VAL1 = %@",[[valAry objectAtIndex:i] objectForKey:@"VAL1"]);
                                     NSLog(@"yp = %f",yp);
-                                    [chart.annotations addObject:[self setChartAnnotation:chart xp:i yp:yp eventId:[[eventAry objectAtIndex:i] objectForKey:@"EVENTID1"]chartNam:1]];
+                                    [chart.annotations addObject:[self setChartAnnotation:chart xp:i yp:yp eventId:[[eventAry objectAtIndex:i] objectForKey:@"EVENTID1"]chartNam:chartCount]];
                                 }
                             }
                         }
-                        
+                        if (chartBool2 == YES) {
+                            chartCount++;
+                        }
                         if ([[valAry objectAtIndex:i] objectForKey:@"VAL2"] != [NSNull null]) {
                             for(int i2 = 0; i2 < eventAry2.count; i2++){
                                 if (i == [[eventAry2 objectAtIndex:i2] intValue]) {
                                     double yp = [[[valAry objectAtIndex:i] objectForKey:@"VAL2"] doubleValue];
-                                    [chart.annotations addObject:[self setChartAnnotation:chart xp:i yp:yp eventId:[[eventAry objectAtIndex:i] objectForKey:@"EVENTID2"]chartNam:2]];
+                                    [chart.annotations addObject:[self setChartAnnotation:chart xp:i yp:yp eventId:[[eventAry objectAtIndex:i] objectForKey:@"EVENTID2"]chartNam:chartCount]];
                                 }
                             }
                         }
-                        
+                        if (chartBool3 == YES) {
+                            chartCount++;
+                        }
                         if ([[valAry objectAtIndex:i] objectForKey:@"VAL3"] != [NSNull null]) {
                             for(int i2 = 0; i2 < eventAry3.count; i2++){
                                 if (i == [[eventAry3 objectAtIndex:i2] intValue]) {
                                     double yp = [[[valAry objectAtIndex:i] objectForKey:@"VAL3"] doubleValue];
-                                    [chart.annotations addObject:[self setChartAnnotation:chart xp:i yp:yp eventId:[[eventAry objectAtIndex:i] objectForKey:@"EVENTID3"] chartNam:3]];
+                                    [chart.annotations addObject:[self setChartAnnotation:chart xp:i yp:yp eventId:[[eventAry objectAtIndex:i] objectForKey:@"EVENTID3"] chartNam:chartCount]];
                                 }
                             }
                         }
-                        
+                        if (chartBool4 == YES) {
+                            chartCount++;
+                        }
                         if ([[valAry objectAtIndex:i] objectForKey:@"VAL4"] != [NSNull null]) {
                             for(int i2 = 0; i2 < eventAry4.count; i2++){
                                 if (i == [[eventAry4 objectAtIndex:i2] intValue]) {
                                     double yp = [[[valAry objectAtIndex:i] objectForKey:@"VAL4"] doubleValue];
-                                    [chart.annotations addObject:[self setChartAnnotation:chart xp:i yp:yp eventId:[[eventAry objectAtIndex:i] objectForKey:@"EVENTID4"] chartNam:4]];
+                                    [chart.annotations addObject:[self setChartAnnotation:chart xp:i yp:yp eventId:[[eventAry objectAtIndex:i] objectForKey:@"EVENTID4"] chartNam:chartCount]];
                                 }
                             }
                         }
@@ -499,6 +513,7 @@ BOOL chartDiaryBool;
                     //NSLog(@"panelNum = %@ \n pageCount = %@",panelNum,self.pageCount);
                     if (page1 == panelInt) {
                         if ([[userDataDic objectForKey:@"DATASETCD"]  isEqual: @"0"]) {
+                            chartBool1 = NO;
                         }else{
                             panel1 = [[XuniSeries alloc] initForChart:chart binding:@"panelANum, panelANum" name:[NSString stringWithFormat:@"%@ %@ %@",[userDataDic objectForKey:@"AREANM"],[userDataDic objectForKey:@"DATATYPE"],[userDataDic objectForKey:@"POINT"]]];
                             [chart.series addObject:panel1];
@@ -512,6 +527,7 @@ BOOL chartDiaryBool;
                     }
                     if (page2 == panelInt) {
                         if ([[userDataDic objectForKey:@"DATASETCD"]  isEqual: @"0"]) {
+                            chartBool2 = NO;
                         }else{
                             panel2 = [[XuniSeries alloc] initForChart:chart binding:@"panelBNum, panelBNum" name:[NSString stringWithFormat:@"%@ %@ %@",[userDataDic objectForKey:@"AREANM"],[userDataDic objectForKey:@"DATATYPE"],[userDataDic objectForKey:@"POINT"]]];
                             if (firstUnit == NO) {
@@ -548,6 +564,7 @@ BOOL chartDiaryBool;
                     }
                     if (page3 == panelInt) {
                         if ([[userDataDic objectForKey:@"DATASETCD"]  isEqual: @"0"]) {
+                            chartBool3 = NO;
                         }else{
                             panel3 = [[XuniSeries alloc] initForChart:chart binding:@"panelCNum, panelCNum" name:[NSString stringWithFormat:@"%@ %@ %@",[userDataDic objectForKey:@"AREANM"],[userDataDic objectForKey:@"DATATYPE"],[userDataDic objectForKey:@"POINT"]]];
                             if (firstUnit == NO) {
@@ -583,6 +600,7 @@ BOOL chartDiaryBool;
                     }
                     if (page4 == panelInt) {
                         if ([[userDataDic objectForKey:@"DATASETCD"]  isEqual: @"0"]) {
+                            chartBool4 = NO;
                         }else{
                             panel4 = [[XuniSeries alloc] initForChart:chart binding:@"panelDNum, panelDNum" name:[NSString stringWithFormat:@"%@ %@ %@",[userDataDic objectForKey:@"AREANM"],[userDataDic objectForKey:@"DATATYPE"],[userDataDic objectForKey:@"POINT"]]];
                             if (firstUnit == NO) {
@@ -675,53 +693,60 @@ BOOL chartDiaryBool;
                     aryCount++;
                 }
                 for(int i = 0; i < chartData.count; i++){
+                    int chartCount = 0;
+                    if (chartBool1 == YES) {
+                        chartCount++;
+                    }
                     if ([[valAry objectAtIndex:i] objectForKey:@"VAL1"] != [NSNull null]) {
                         for(int i2 = 0; i2 < eventAry1.count; i2++){
                             if (i == [[eventAry1 objectAtIndex:i2] intValue]) {
                                 double yp = [[[valAry objectAtIndex:i] objectForKey:@"VAL1"] doubleValue];
                                 NSLog(@"VAL1 = %@",[[valAry objectAtIndex:i] objectForKey:@"VAL1"]);
                                 NSLog(@"yp = %f",yp);
-                                [chart.annotations addObject:[self setChartAnnotation:chart xp:i yp:yp eventId:[[eventAry objectAtIndex:i] objectForKey:@"EVENTID1"]chartNam:1]];
+                                [chart.annotations addObject:[self setChartAnnotation:chart xp:i yp:yp eventId:[[eventAry objectAtIndex:i] objectForKey:@"EVENTID1"]chartNam:chartCount]];
                             }
                         }
                     }
-                    
+                    if (chartBool2 == YES) {
+                        chartCount++;
+                    }
                     if ([[valAry objectAtIndex:i] objectForKey:@"VAL2"] != [NSNull null]) {
                         for(int i2 = 0; i2 < eventAry2.count; i2++){
                             if (i == [[eventAry2 objectAtIndex:i2] intValue]) {
                                 double yp = [[[valAry objectAtIndex:i] objectForKey:@"VAL2"] doubleValue];
-                                [chart.annotations addObject:[self setChartAnnotation:chart xp:i yp:yp eventId:[[eventAry objectAtIndex:i] objectForKey:@"EVENTID2"]chartNam:2]];
+                                [chart.annotations addObject:[self setChartAnnotation:chart xp:i yp:yp eventId:[[eventAry objectAtIndex:i] objectForKey:@"EVENTID2"]chartNam:chartCount]];
                             }
                         }
                     }
-                    
+                    if (chartBool3 == YES) {
+                        chartCount++;
+                    }
                     if ([[valAry objectAtIndex:i] objectForKey:@"VAL3"] != [NSNull null]) {
                         for(int i2 = 0; i2 < eventAry3.count; i2++){
                             if (i == [[eventAry3 objectAtIndex:i2] intValue]) {
                                 double yp = [[[valAry objectAtIndex:i] objectForKey:@"VAL3"] doubleValue];
-                                [chart.annotations addObject:[self setChartAnnotation:chart xp:i yp:yp eventId:[[eventAry objectAtIndex:i] objectForKey:@"EVENTID3"]chartNam:3]];
+                                [chart.annotations addObject:[self setChartAnnotation:chart xp:i yp:yp eventId:[[eventAry objectAtIndex:i] objectForKey:@"EVENTID3"]chartNam:chartCount]];
                             }
                         }
                     }
-                    
+                    if (chartBool4 == YES) {
+                        chartCount++;
+                    }
                     if ([[valAry objectAtIndex:i] objectForKey:@"VAL4"] != [NSNull null]) {
                         for(int i2 = 0; i2 < eventAry4.count; i2++){
                             if (i == [[eventAry4 objectAtIndex:i2] intValue]) {
                                 double yp = [[[valAry objectAtIndex:i] objectForKey:@"VAL4"] doubleValue];
-                                [chart.annotations addObject:[self setChartAnnotation:chart xp:i yp:yp eventId:[[eventAry objectAtIndex:i] objectForKey:@"EVENTID4"]chartNam:4]];
+                                [chart.annotations addObject:[self setChartAnnotation:chart xp:i yp:yp eventId:[[eventAry objectAtIndex:i] objectForKey:@"EVENTID4"]chartNam:chartCount]];
                             }
                         }
                     }
                 }
             }
-            NSLog(@"chart.axesArray = %@",chart.axesArray);
             for (int i = 0; i < chart.axesArray.count; i++) {
                 XuniAxis *imageChart = [chart.axesArray objectAtIndex:i];
                 //Y軸の最大値最小値を設定
                 double columnMax = imageChart.chart.axisY.actualMax;
                 double columnMin = imageChart.chart.axisY.actualMin;
-                NSLog(@"columnMax = %f",columnMax);
-                NSLog(@"columnMin = %f",columnMin);
                 [imageChart.chart.axisY setMax:[NSNumber numberWithDouble:[Common chartMax:columnMax min:columnMin]]];
                 [imageChart.chart.axisY setMin:[NSNumber numberWithDouble:[Common chartMax:columnMin min:columnMin]]];
             }
@@ -754,9 +779,21 @@ BOOL chartDiaryBool;
 -(XuniChartImageAnnotation *)setChartAnnotation:(FlexChart *)chart xp:(double)xp yp:(double)yp eventId:(NSString *)eventId chartNam:(int)chartNam{
     NSDictionary *diaryDic = [[PHPConnection getDiaryEventId:eventId] objectAtIndex:0];
     
-    
+    int chartCount = chartNam;
     // Image annotation.
-    XuniAxis *imageChart = [chart.axesArray objectAtIndex:chartNam-1];
+    NSLog(@"chart.axesArray = %@",chart.axesArray);
+    //軸が少ないがそれよりグラフ数が多い場合の処理
+    if (chart.axesArray.count == 2) {
+        if (chartCount > 2) {
+            chartCount=2;
+        }
+    }
+    if (chart.axesArray.count == 3) {
+        if (chartCount > 3) {
+            chartCount=3;
+        }
+    }
+    XuniAxis *imageChart = [chart.axesArray objectAtIndex:chartCount-1];
     XuniChartImageAnnotation *image = [[XuniChartImageAnnotation alloc] initWithChart:imageChart.chart];
     image.isVisible = YES;
     image.position = XuniChartAnnotationPositionCenter;
