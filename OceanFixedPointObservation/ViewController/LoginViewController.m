@@ -31,6 +31,7 @@
 //    self.groupId2.text = @"EEVJ";
 //    self.groupId3.text = @"HAT3";
 //    self.groupId4.text = @"EEE8";
+    [self.closeBtn setTitle:@"お問い合わせ" forState:UIControlStateNormal];
 }
 
 - (void)didReceiveMemoryWarning {
@@ -98,18 +99,33 @@
         }
         return NO;
     }
-    
-    
     return YES;
 }
 
 - (IBAction)closeBtn:(id)sender {
-    //強制終了はリジェクト対象のようだ
-    exit(0);
+    UIAlertController *alertController = [UIAlertController alertControllerWithTitle:@"確認" message:@"外部お問い合わせページに移動します。\nよろしいですか？" preferredStyle:UIAlertControllerStyleAlert];
+    
+    // addActionした順に左から右にボタンが配置されます
+    [alertController addAction:[UIAlertAction actionWithTitle:@"OK" style:UIAlertActionStyleDefault handler:^(UIAlertAction *action) {
+        // otherボタンが押された時の処理
+        [self otherButtonPushed];
+    }]];
+    [alertController addAction:[UIAlertAction actionWithTitle:@"キャンセル" style:UIAlertActionStyleDefault handler:^(UIAlertAction *action) {
+        // cancelボタンが押された時の処理
+        [self cancelButtonPushed];
+    }]];
+    
+    [self presentViewController:alertController animated:YES completion:nil];
 }
 - (IBAction)nextBtn:(id)sender {
     Login2ViewController *viewController = [self.storyboard instantiateViewControllerWithIdentifier:@"Login2ViewController"];
     viewController.modalTransitionStyle = UIModalTransitionStyleCrossDissolve;
     [self presentViewController:viewController animated:YES completion:nil];
+}
+- (void)cancelButtonPushed{
+    
+}
+- (void)otherButtonPushed{
+    [[UIApplication sharedApplication] openURL:[NSURL URLWithString:@"http://www.and-ex.co.jp/mail.html"]];
 }
 @end

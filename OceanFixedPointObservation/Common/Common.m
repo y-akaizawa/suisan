@@ -301,6 +301,9 @@ NSString *const maxBackCount = @"2016010100";//戻れる最大;
         default:
             break;
     }
+    maskPath = [UIBezierPath bezierPathWithRoundedRect:roundView.bounds
+                                     byRoundingCorners:(UIRectCornerBottomLeft | UIRectCornerBottomRight | UIRectCornerTopLeft | UIRectCornerTopRight)
+                                           cornerRadii:CGSizeMake(0.0, 0.0)];
     CAShapeLayer *maskLayer = [[CAShapeLayer alloc] init];
     maskLayer.frame = roundView.bounds;
     maskLayer.path = maskPath.CGPath;

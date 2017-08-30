@@ -9,6 +9,7 @@
 #import "ChatViewController.h"
 #define imageTapTag 10001
 #define imageTag 10002
+#define labelH 35
 
 @interface ChatViewController ()<NSURLSessionDelegate,UIGestureRecognizerDelegate>
 
@@ -22,7 +23,7 @@ float imageX;//画像の位置保存用X
 float imageY;//画像の位置保存用Y
 int topicLabelWidth;
 int resLabelWidth;
-
+NSTimer *timer;//テーブル表示用タイマー
 
 NSString *openTopicId = @"0";//もっと見る状態のtopicidを格納
 NSString *chatType = @"";//話題か返信かtopic or res
@@ -50,7 +51,7 @@ UIImage *cameraImage = nil;//撮影、アルバム選択時の画像を一時的
             resLabelWidth = 280;
             break;
     }
-    
+    self.accessLabel.textColor = [UIColor colorWithRed:0 green:0 blue:1.0 alpha:1];
     
     effectiveScale = 1.0f;
     self.preImageView.contentMode = UIViewContentModeScaleAspectFit;
@@ -71,45 +72,74 @@ UIImage *cameraImage = nil;//撮影、アルバム選択時の画像を一時的
     self.chatTableView.separatorColor = [UIColor clearColor];
     self.chatTableView.bounces = YES;
     imageFlag = NO;
-    [self getChatAry];
     self.adminNameLabel.text = [NSString stringWithFormat:@"管理人：%@",self.adminName];
     self.adminNameLabel.adjustsFontSizeToFitWidth = YES;
     self.adminNameLabel.minimumScaleFactor = 5.f/30.f;
+    [self getChatAry];
     [self refleshControlSetting];
 }
 -(void)viewDidAppear:(BOOL)animated{
     [super viewDidAppear:animated];
+    
 }
 
 - (void)didReceiveMemoryWarning {
     [super didReceiveMemoryWarning];
     // Dispose of any resources that can be recreated.
 }
-
+-(void) timerInfo:(NSTimer *)timer
+{
+    [self updateVisibleCells];
+}
 -(void)getChatAry{
-    //チャットデータ全収納用配列を作成
+    [Common showSVProgressHUD:@""];
+    //チャットデータ全収納用配列を作成、初期化
+    [self.allChatAry removeAllObjects];
     self.allChatAry = [[NSMutableArray alloc] initWithCapacity:0];
-    //話題データ取得
-    self.chatAry = [PHPConnection getThreadTopicList:self.threadId];
-    int allCount = 0;
-    for(NSDictionary *dic1 in self.chatAry){
-        [self.allChatAry addObject:dic1];
-        //返信データ取得
-        NSMutableArray *resChatAry = [[NSMutableArray alloc] initWithCapacity:0];
-        if ([[dic1 objectForKey:@"TOPICID"]  isEqual: openTopicId]) {
-            resChatAry = [PHPConnection getTopicResList:self.threadId topicid:[dic1 objectForKey:@"TOPICID"] init:@"0"];
-        }else{
-            resChatAry = [PHPConnection getTopicResList:self.threadId topicid:[dic1 objectForKey:@"TOPICID"] init:@"1"];
-        }
-        for(NSDictionary *dic2 in resChatAry){
-            if ([Common checkErrorMessage:dic2] == YES) {
-                [NSString stringWithFormat:@"%@",[dic2 objectForKey:@"ERRORMESSAGE"]];
-            }else{
-                [self.allChatAry addObject:dic2];
+    [self.chatAry removeAllObjects];
+    self.chatAry = [[NSMutableArray alloc] initWithCapacity:0];
+    dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^{
+        //話題データ取得
+        self.chatAry = [PHPConnection getThreadTopicList:self.threadId];
+        dispatch_async(dispatch_get_main_queue(), ^{
+            int allCount = 0;
+            for(NSDictionary *dic1 in self.chatAry){
+                [self.allChatAry addObject:dic1];
+                //返信データ取得
+                NSMutableArray *resChatAry = [[NSMutableArray alloc] initWithCapacity:0];
+                if ([[dic1 objectForKey:@"TOPICID"]  isEqual: openTopicId]) {
+                    resChatAry = [PHPConnection getTopicResList:self.threadId topicid:[dic1 objectForKey:@"TOPICID"] init:@"0"];
+                }else{
+                    resChatAry = [PHPConnection getTopicResList:self.threadId topicid:[dic1 objectForKey:@"TOPICID"] init:@"1"];
+                }
+                for(NSDictionary *dic2 in resChatAry){
+                    if ([Common checkErrorMessage:dic2] == YES) {
+                        [NSString stringWithFormat:@"%@",[dic2 objectForKey:@"ERRORMESSAGE"]];
+                    }else{
+                        [self.allChatAry addObject:dic2];
+                    }
+                }
+                allCount++;
             }
-        }
-        allCount++;
-    }
+            [self.chatTableView reloadData];
+            [self updateVisibleCells];
+            timer = [NSTimer
+                     // タイマーイベントを発生させる感覚。「1.5」は 1.5秒 型は float
+                     scheduledTimerWithTimeInterval:1.0
+                     // 呼び出すメソッドの呼び出し先(selector) self はこのファイル(.m)
+                     target:self
+                     // 呼び出すメソッド名。「:」で自分自身(タイマーインスタンス)を渡す。
+                     // インスタンスを渡さない場合は、「timerInfo」
+                     selector:@selector(timerInfo:)
+                     // 呼び出すメソッド内で利用するデータが存在する場合は設定する。ない場合は「nil」
+                     userInfo:nil
+                     // 上記で設定した秒ごとにメソッドを呼び出す場合は、「YES」呼び出さない場合は「NO」
+                     repeats:YES
+                     ];
+            [timer isValid];
+            [Common dismissSVProgressHUD];
+        });
+    });
 }
 #pragma mark-テーブルビューデリゲート
 //セッション
@@ -128,7 +158,7 @@ UIImage *cameraImage = nil;//撮影、アルバム選択時の画像を一時的
     //リストの配列番号取得
     //allTopicListAryからリストの配列番号の要素をNSDictionaryで取り出す
     NSDictionary *cellDic = [self.allChatAry objectAtIndex:indexPath.row];
-    UILabel *l = [[UILabel alloc] init];
+    UILabel *l = [[UILabel alloc] initWithFrame:CGRectMake(0, 0, 0, 40)];
     NSString *memoStr = @"";
     if([cellDic.allKeys containsObject:@"TOPICID"]){
         if([[cellDic objectForKey:@"DELSTATUS"]  isEqual: @""]){
@@ -145,9 +175,9 @@ UIImage *cameraImage = nil;//撮影、アルバム選択時の画像を一時的
         }
         l = [Common getLabelSize:l text:memoStr labelWidth:resLabelWidth margin:0];
     }
-    
-    float labelHeight = 0;
-    if (l.frame.size.height > 40) {
+    [l sizeToFit];
+    float labelHeight = labelH;
+    if (l.frame.size.height > labelH) {
         labelHeight = l.frame.size.height;
     }
     if (indexPath.row == self.allChatAry.count-1) {
@@ -298,15 +328,6 @@ UIImage *cameraImage = nil;//撮影、アルバム選択時の画像を一時的
     [Common viewRoundedRect:backGraundView1 direction:1];
     UILabel *memoLabel1 = (UILabel *)[cell1 viewWithTag:2];
     memoLabel1.textColor = [UIColor blackColor];
-    memoLabel1 = [Common getLabelSize:memoLabel1 text:memoStr labelWidth:topicLabelWidth margin:0];
-    memoLabel1.text = [NSString stringWithFormat:@"%@",memoStr];
-    [memoLabel1 sizeToFit];
-    float labelHeight1 = 0;
-    if (memoLabel1.frame.size.height > 40) {
-        labelHeight1 = memoLabel1.frame.size.height;
-    }
-    backGraundView1.frame = CGRectMake(backGraundView1.frame.origin.x, backGraundView1.frame.origin.y, backGraundView1.frame.size.width, backGraundView1.frame.size.height+labelHeight1);
-    
     UILabel *nemeLabel1 = (UILabel *)[cell1 viewWithTag:3];
     nemeLabel1.adjustsFontSizeToFitWidth = YES;
     nemeLabel1.minimumScaleFactor = 5.f/30.f;
@@ -321,21 +342,7 @@ UIImage *cameraImage = nil;//撮影、アルバム選択時の画像を一時的
     [reBtn1 addTarget:self action:@selector(handleTouchButton:event:) forControlEvents:UIControlEventTouchUpInside];
     UILabel *timeLabel1 = (UILabel *)[cell1 viewWithTag:7];
     
-    //文字数で増えたぶんだけずらす
-    nemeLabel1.transform = CGAffineTransformIdentity;
-    nemeLabel1.transform = CGAffineTransformMakeTranslation(0, labelHeight1);
     
-    countLabel1.transform = CGAffineTransformIdentity;
-    countLabel1.transform = CGAffineTransformMakeTranslation(0, labelHeight1);
-    
-    delBtn1.transform = CGAffineTransformIdentity;
-    delBtn1.transform = CGAffineTransformMakeTranslation(0, labelHeight1);
-    
-    reBtn1.transform = CGAffineTransformIdentity;
-    reBtn1.transform = CGAffineTransformMakeTranslation(0, labelHeight1);
-    
-    timeLabel1.transform = CGAffineTransformIdentity;
-    timeLabel1.transform = CGAffineTransformMakeTranslation(0, labelHeight1);
     
     /*AdminImageCell:話題開始用 画像あり
      *tag=1 : 背景、角丸、サイズ変更用
@@ -351,15 +358,6 @@ UIImage *cameraImage = nil;//撮影、アルバム選択時の画像を一時的
     [Common viewRoundedRect:backGraundView2 direction:1];
     UILabel *memoLabel2 = (UILabel *)[cell2 viewWithTag:2];
     memoLabel2.textColor = [UIColor blackColor];
-    memoLabel2 = [Common getLabelSize:memoLabel2 text:memoStr labelWidth:topicLabelWidth margin:0];
-    memoLabel2.text = [NSString stringWithFormat:@"%@",memoStr];
-    [memoLabel2 sizeToFit];
-    float labelHeight2 = 0;
-    if (memoLabel2.frame.size.height > 40) {
-        labelHeight2 = memoLabel2.frame.size.height;
-    }
-    backGraundView2.frame = CGRectMake(backGraundView2.frame.origin.x, backGraundView2.frame.origin.y, backGraundView2.frame.size.width, backGraundView2.frame.size.height+labelHeight2);
-    
     UIImageView *image2 = (UIImageView *)[cell2 viewWithTag:3];
     image2.contentMode = UIViewContentModeScaleAspectFit;
     UILabel *nemeLabel2 = (UILabel *)[cell2 viewWithTag:4];
@@ -380,31 +378,6 @@ UIImage *cameraImage = nil;//撮影、アルバム選択時の画像を一時的
     UIButton *imageBtn2 = (UIButton *)[cell2 viewWithTag:10];
     [imageBtn2 addTarget:self action:@selector(imagePicUpBtn:event:) forControlEvents:UIControlEventTouchUpInside];
     
-    //文字数で増えたぶんだけずらす
-    image2.transform = CGAffineTransformIdentity;
-    image2.transform = CGAffineTransformMakeTranslation(0, labelHeight2);
-    
-    nemeLabel2.transform = CGAffineTransformIdentity;
-    nemeLabel2.transform = CGAffineTransformMakeTranslation(0, labelHeight2);
-    
-    countLabel2.transform = CGAffineTransformIdentity;
-    countLabel2.transform = CGAffineTransformMakeTranslation(0, labelHeight2);
-    
-    delBtn2.transform = CGAffineTransformIdentity;
-    delBtn2.transform = CGAffineTransformMakeTranslation(0, labelHeight2);
-    
-    reBtn2.transform = CGAffineTransformIdentity;
-    reBtn2.transform = CGAffineTransformMakeTranslation(0, labelHeight2);
-    
-    timeLabel2.transform = CGAffineTransformIdentity;
-    timeLabel2.transform = CGAffineTransformMakeTranslation(0, labelHeight2);
-    
-    indicator2.transform = CGAffineTransformIdentity;
-    indicator2.transform = CGAffineTransformMakeTranslation(0, labelHeight2);
-    
-    imageBtn2.transform = CGAffineTransformIdentity;
-    imageBtn2.transform = CGAffineTransformMakeTranslation(0, labelHeight2);
-    
     
     /*GuestCell:話題返信用 画像なし
      *tag=1 : 背景、角丸、サイズ変更用
@@ -416,14 +389,6 @@ UIImage *cameraImage = nil;//撮影、アルバム選択時の画像を一時的
     [Common viewRoundedRect:backGraundView3 direction:4];
     UILabel *memoLabel3 = (UILabel *)[cell3 viewWithTag:2];
     memoLabel3.textColor = [UIColor blackColor];
-    memoLabel3 = [Common getLabelSize:memoLabel3 text:memoStr labelWidth:resLabelWidth margin:0];
-    memoLabel3.text = [NSString stringWithFormat:@"%@",memoStr];
-    [memoLabel3 sizeToFit];
-    float labelHeight3 = 0;
-    if (memoLabel3.frame.size.height > 40) {
-        labelHeight3 = memoLabel3.frame.size.height;
-    }
-    backGraundView3.frame = CGRectMake(backGraundView3.frame.origin.x, backGraundView3.frame.origin.y, backGraundView3.frame.size.width, backGraundView3.frame.size.height+labelHeight3);
     
     UILabel *nemeLabel3 = (UILabel *)[cell3 viewWithTag:3];
     nemeLabel3.adjustsFontSizeToFitWidth = YES;
@@ -434,15 +399,7 @@ UIImage *cameraImage = nil;//撮影、アルバム選択時の画像を一時的
     [delBtn3 addTarget:self action:@selector(deleteResBtn:event:) forControlEvents:UIControlEventTouchUpInside];
     UILabel *timeLabel3 = (UILabel *)[cell3 viewWithTag:5];
     
-    //文字数で増えたぶんだけずらす
-    nemeLabel3.transform = CGAffineTransformIdentity;
-    nemeLabel3.transform = CGAffineTransformMakeTranslation(0, labelHeight3);
     
-    delBtn3.transform = CGAffineTransformIdentity;
-    delBtn3.transform = CGAffineTransformMakeTranslation(0, labelHeight3);
-    
-    timeLabel3.transform = CGAffineTransformIdentity;
-    timeLabel3.transform = CGAffineTransformMakeTranslation(0, labelHeight3);
     
     /*GuestImageCell:話題返信用もっと見る 画像あり
      *tag=1 : 背景、角丸、サイズ変更用
@@ -452,18 +409,9 @@ UIImage *cameraImage = nil;//撮影、アルバム選択時の画像を一時的
      *tag=5 : 削除ボタン
      */
     UIView *backGraundView4 = (UIView *)[cell4 viewWithTag:1];
-    [Common viewRoundedRect:backGraundView3 direction:4];
+    [Common viewRoundedRect:backGraundView4 direction:4];
     UILabel *memoLabel4 = (UILabel *)[cell4 viewWithTag:2];
     memoLabel4.textColor = [UIColor blackColor];
-    memoLabel4 = [Common getLabelSize:memoLabel4 text:memoStr labelWidth:resLabelWidth margin:0];
-    memoLabel4.text = [NSString stringWithFormat:@"%@",memoStr];
-    [memoLabel4 sizeToFit];
-    float labelHeight4 = 0;
-    if (memoLabel4.frame.size.height > 40) {
-        labelHeight4 = memoLabel4.frame.size.height;
-    }
-    backGraundView4.frame = CGRectMake(backGraundView4.frame.origin.x, backGraundView4.frame.origin.y, backGraundView4.frame.size.width, backGraundView4.frame.size.height+labelHeight4);
-    
     UIImageView *image4 = (UIImageView *)[cell4 viewWithTag:3];
     image4.contentMode = UIViewContentModeScaleAspectFit;
     UILabel *nemeLabel4 = (UILabel *)[cell4 viewWithTag:4];
@@ -479,24 +427,6 @@ UIImage *cameraImage = nil;//撮影、アルバム選択時の画像を一時的
     UIButton *imageBtn4 = (UIButton *)[cell4 viewWithTag:10];
     [imageBtn4 addTarget:self action:@selector(imagePicUpBtn:event:) forControlEvents:UIControlEventTouchUpInside];
     
-    //文字数で増えたぶんだけずらす
-    image4.transform = CGAffineTransformIdentity;
-    image4.transform = CGAffineTransformMakeTranslation(0, labelHeight4);
-    
-    nemeLabel4.transform = CGAffineTransformIdentity;
-    nemeLabel4.transform = CGAffineTransformMakeTranslation(0, labelHeight4);
-    
-    delBtn4.transform = CGAffineTransformIdentity;
-    delBtn4.transform = CGAffineTransformMakeTranslation(0, labelHeight4);
-    
-    timeLabel4.transform = CGAffineTransformIdentity;
-    timeLabel4.transform = CGAffineTransformMakeTranslation(0, labelHeight4);
-    
-    indicator4.transform = CGAffineTransformIdentity;
-    indicator4.transform = CGAffineTransformMakeTranslation(0, labelHeight4);
-    
-    imageBtn4.transform = CGAffineTransformIdentity;
-    imageBtn4.transform = CGAffineTransformMakeTranslation(0, labelHeight4);
     
     /*GuestLordCell:話題返信用 画像なし
      *tag=1 : 背景、角丸、サイズ変更用
@@ -509,14 +439,6 @@ UIImage *cameraImage = nil;//撮影、アルバム選択時の画像を一時的
     [Common viewRoundedRect:backGraundView5 direction:2];
     UILabel *memoLabel5 = (UILabel *)[cell5 viewWithTag:2];
     memoLabel5.textColor = [UIColor blackColor];
-    memoLabel5 = [Common getLabelSize:memoLabel5 text:memoStr labelWidth:resLabelWidth margin:0];
-    memoLabel5.text = [NSString stringWithFormat:@"%@",memoStr];
-    [memoLabel5 sizeToFit];
-    float labelHeight5 = 0;
-    if (memoLabel5.frame.size.height > 40) {
-        labelHeight5 = memoLabel5.frame.size.height;
-    }
-    backGraundView5.frame = CGRectMake(backGraundView5.frame.origin.x, backGraundView5.frame.origin.y, backGraundView5.frame.size.width, backGraundView5.frame.size.height+labelHeight5);
     
     UILabel *nemeLabel5 = (UILabel *)[cell5 viewWithTag:3];
     nemeLabel5.adjustsFontSizeToFitWidth = YES;
@@ -528,19 +450,6 @@ UIImage *cameraImage = nil;//撮影、アルバム選択時の画像を一時的
     UILabel *timeLabel5 = (UILabel *)[cell5 viewWithTag:5];
     UIButton *lordBtn5 = (UIButton *)[cell5 viewWithTag:6];
     [lordBtn5 addTarget:self action:@selector(lordButton:event:) forControlEvents:UIControlEventTouchUpInside];
-    
-    //文字数で増えたぶんだけずらす
-    nemeLabel5.transform = CGAffineTransformIdentity;
-    nemeLabel5.transform = CGAffineTransformMakeTranslation(0, labelHeight5);
-    
-    delBtn5.transform = CGAffineTransformIdentity;
-    delBtn5.transform = CGAffineTransformMakeTranslation(0, labelHeight5);
-    
-    timeLabel5.transform = CGAffineTransformIdentity;
-    timeLabel5.transform = CGAffineTransformMakeTranslation(0, labelHeight5);
-    
-    lordBtn5.transform = CGAffineTransformIdentity;
-    lordBtn5.transform = CGAffineTransformMakeTranslation(0, labelHeight5);
     
     /*GuestImageLordCCell:話題返信用もっと見る 画像あり
      *tag=1 : 背景、角丸、サイズ変更用
@@ -554,15 +463,6 @@ UIImage *cameraImage = nil;//撮影、アルバム選択時の画像を一時的
     [Common viewRoundedRect:backGraundView6 direction:2];
     UILabel *memoLabel6 = (UILabel *)[cell6 viewWithTag:2];
     memoLabel6.textColor = [UIColor blackColor];
-    memoLabel6 = [Common getLabelSize:memoLabel6 text:memoStr labelWidth:resLabelWidth margin:0];
-    memoLabel6.text = [NSString stringWithFormat:@"%@",memoStr];
-    [memoLabel6 sizeToFit];
-    float labelHeight6 = 0;
-    if (memoLabel6.frame.size.height > 40) {
-        labelHeight6 = memoLabel6.frame.size.height;
-    }
-    backGraundView6.frame = CGRectMake(backGraundView6.frame.origin.x, backGraundView6.frame.origin.y, backGraundView6.frame.size.width, backGraundView6.frame.size.height+labelHeight6);
-    
     UIImageView *image6 = (UIImageView *)[cell6 viewWithTag:3];
     image6.contentMode = UIViewContentModeScaleAspectFit;
     UILabel *nemeLabel6 = (UILabel *)[cell6 viewWithTag:4];
@@ -580,27 +480,6 @@ UIImage *cameraImage = nil;//撮影、アルバム選択時の画像を一時的
     UIButton *imageBtn6 = (UIButton *)[cell6 viewWithTag:10];
     [imageBtn6 addTarget:self action:@selector(imagePicUpBtn:event:) forControlEvents:UIControlEventTouchUpInside];
     
-    //文字数で増えたぶんだけずらす
-    image6.transform = CGAffineTransformIdentity;
-    image6.transform = CGAffineTransformMakeTranslation(0, labelHeight6);
-    
-    nemeLabel6.transform = CGAffineTransformIdentity;
-    nemeLabel6.transform = CGAffineTransformMakeTranslation(0, labelHeight6);
-    
-    delBtn6.transform = CGAffineTransformIdentity;
-    delBtn6.transform = CGAffineTransformMakeTranslation(0, labelHeight6);
-    
-    timeLabel6.transform = CGAffineTransformIdentity;
-    timeLabel6.transform = CGAffineTransformMakeTranslation(0, labelHeight6);
-    
-    lordBtn6.transform = CGAffineTransformIdentity;
-    lordBtn6.transform = CGAffineTransformMakeTranslation(0, labelHeight6);
-    
-    indicator6.transform = CGAffineTransformIdentity;
-    indicator6.transform = CGAffineTransformMakeTranslation(0, labelHeight6);
-    
-    imageBtn6.transform = CGAffineTransformIdentity;
-    imageBtn6.transform = CGAffineTransformMakeTranslation(0, labelHeight6);
     
     int	resCount = 0;
     if([cellDic.allKeys containsObject:@"RESCOUNT"]){
@@ -616,12 +495,39 @@ UIImage *cameraImage = nil;//撮影、アルバム選択時の画像を一時的
         if(![[cellDic objectForKey:@"IMAGEURL"]  isEqual: @""]){
             //画像がある
             //①の見出し画像ありのリスト処理
-            if([[cellDic objectForKey:@"DELSTATUS"]  isEqual: @""]){
-                memoLabel2.text = [cellDic objectForKey:@"TOPIC"];
-            }else{
-                memoLabel2.text = [NSString stringWithFormat:@"%@%@",[cellDic objectForKey:@"DELSTATUS"],[cellDic objectForKey:@"TOPIC"]];
+            memoLabel2 = [Common getLabelSize:memoLabel2 text:memoStr labelWidth:topicLabelWidth margin:0];
+            memoLabel2.text = [NSString stringWithFormat:@"%@",memoStr];
+            [memoLabel2 sizeToFit];
+            float labelHeight2 = labelH;
+            if (memoLabel2.frame.size.height > labelH) {
+                labelHeight2 = memoLabel2.frame.size.height;
             }
-            memoLabel2.text = [cellDic objectForKey:@"TOPIC"];
+            backGraundView2.frame = CGRectMake(backGraundView2.frame.origin.x, backGraundView2.frame.origin.y, backGraundView2.frame.size.width, backGraundView2.frame.size.height+labelHeight2);
+            //文字数で増えたぶんだけずらす
+            image2.transform = CGAffineTransformIdentity;
+            image2.transform = CGAffineTransformMakeTranslation(0, labelHeight2);
+            
+            nemeLabel2.transform = CGAffineTransformIdentity;
+            nemeLabel2.transform = CGAffineTransformMakeTranslation(0, labelHeight2);
+            
+            countLabel2.transform = CGAffineTransformIdentity;
+            countLabel2.transform = CGAffineTransformMakeTranslation(0, labelHeight2);
+            
+            delBtn2.transform = CGAffineTransformIdentity;
+            delBtn2.transform = CGAffineTransformMakeTranslation(0, labelHeight2);
+            
+            reBtn2.transform = CGAffineTransformIdentity;
+            reBtn2.transform = CGAffineTransformMakeTranslation(0, labelHeight2);
+            
+            timeLabel2.transform = CGAffineTransformIdentity;
+            timeLabel2.transform = CGAffineTransformMakeTranslation(0, labelHeight2);
+            
+            indicator2.transform = CGAffineTransformIdentity;
+            indicator2.transform = CGAffineTransformMakeTranslation(0, labelHeight2);
+            
+            imageBtn2.transform = CGAffineTransformIdentity;
+            imageBtn2.transform = CGAffineTransformMakeTranslation(0, labelHeight2);
+            
             [indicator2 startAnimating];
             dispatch_queue_t q_global = dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0);
             dispatch_queue_t q_main = dispatch_get_main_queue();
@@ -650,11 +556,29 @@ UIImage *cameraImage = nil;//撮影、アルバム選択時の画像を一時的
         }else{
             //画像がない
             //②の見出し画像なしのリスト処理
-            if([[cellDic objectForKey:@"DELSTATUS"]  isEqual: @""]){
-                memoLabel1.text = [cellDic objectForKey:@"TOPIC"];
-            }else{
-                memoLabel1.text = [NSString stringWithFormat:@"%@%@",[cellDic objectForKey:@"DELSTATUS"],[cellDic objectForKey:@"TOPIC"]];
+            memoLabel1 = [Common getLabelSize:memoLabel1 text:memoStr labelWidth:topicLabelWidth margin:0];
+            memoLabel1.text = [NSString stringWithFormat:@"%@",memoStr];
+            float labelHeight1 = labelH;
+            if (memoLabel1.frame.size.height > labelH) {
+                labelHeight1 = memoLabel1.frame.size.height;
             }
+            backGraundView1.frame = CGRectMake(backGraundView1.frame.origin.x, backGraundView1.frame.origin.y, backGraundView1.frame.size.width, backGraundView1.frame.size.height+labelHeight1);
+            //文字数で増えたぶんだけずらす
+            nemeLabel1.transform = CGAffineTransformIdentity;
+            nemeLabel1.transform = CGAffineTransformMakeTranslation(0, labelHeight1);
+            
+            countLabel1.transform = CGAffineTransformIdentity;
+            countLabel1.transform = CGAffineTransformMakeTranslation(0, labelHeight1);
+            
+            delBtn1.transform = CGAffineTransformIdentity;
+            delBtn1.transform = CGAffineTransformMakeTranslation(0, labelHeight1);
+            
+            reBtn1.transform = CGAffineTransformIdentity;
+            reBtn1.transform = CGAffineTransformMakeTranslation(0, labelHeight1);
+            
+            timeLabel1.transform = CGAffineTransformIdentity;
+            timeLabel1.transform = CGAffineTransformMakeTranslation(0, labelHeight1);
+            
             nemeLabel1.text = [NSString stringWithFormat:@"%@",[cellDic objectForKey:@"WRITEUSERNAME"]];
             timeLabel1.text = [NSString stringWithFormat:@"%@/%@/%@ %@:%@",[[cellDic objectForKey:@"WRITEDATE"] substringWithRange:NSMakeRange(0, 4)],[[cellDic objectForKey:@"WRITEDATE"] substringWithRange:NSMakeRange(4, 2)],[[cellDic objectForKey:@"WRITEDATE"] substringWithRange:NSMakeRange(6, 2)],[[cellDic objectForKey:@"WRITEDATE"] substringWithRange:NSMakeRange(8, 2)],[[cellDic objectForKey:@"WRITEDATE"] substringWithRange:NSMakeRange(10, 2)]];
             countLabel1.text = [NSString stringWithFormat:@"返信数：%@件",[cellDic objectForKey:@"RESCOUNT"]];
@@ -678,11 +602,33 @@ UIImage *cameraImage = nil;//撮影、アルバム選択時の画像を一時的
             if(![[cellDic objectForKey:@"IMAGEURL"]  isEqual: @""]){
                 //画像がある
                 //③の返信 画像ありのリスト処理
-                if([[cellDic objectForKey:@"DELSTATUS"]  isEqual: @""]){
-                    memoLabel4.text = [cellDic objectForKey:@"RES"];
-                }else{
-                    memoLabel4.text = [NSString stringWithFormat:@"%@%@",[cellDic objectForKey:@"DELSTATUS"],[cellDic objectForKey:@"RES"]];
+                memoLabel4 = [Common getLabelSize:memoLabel4 text:memoStr labelWidth:resLabelWidth margin:0];
+                memoLabel4.text = [NSString stringWithFormat:@"%@",memoStr];
+                [memoLabel4 sizeToFit];
+                float labelHeight4 = labelH;
+                if (memoLabel4.frame.size.height > labelH) {
+                    labelHeight4 = memoLabel4.frame.size.height;
                 }
+                backGraundView4.frame = CGRectMake(backGraundView4.frame.origin.x, backGraundView4.frame.origin.y, backGraundView4.frame.size.width, backGraundView4.frame.size.height+labelHeight4);
+                //文字数で増えたぶんだけずらす
+                image4.transform = CGAffineTransformIdentity;
+                image4.transform = CGAffineTransformMakeTranslation(0, labelHeight4);
+                
+                nemeLabel4.transform = CGAffineTransformIdentity;
+                nemeLabel4.transform = CGAffineTransformMakeTranslation(0, labelHeight4);
+                
+                delBtn4.transform = CGAffineTransformIdentity;
+                delBtn4.transform = CGAffineTransformMakeTranslation(0, labelHeight4);
+                
+                timeLabel4.transform = CGAffineTransformIdentity;
+                timeLabel4.transform = CGAffineTransformMakeTranslation(0, labelHeight4);
+                
+                indicator4.transform = CGAffineTransformIdentity;
+                indicator4.transform = CGAffineTransformMakeTranslation(0, labelHeight4);
+                
+                imageBtn4.transform = CGAffineTransformIdentity;
+                imageBtn4.transform = CGAffineTransformMakeTranslation(0, labelHeight4);
+                
                 [indicator4 startAnimating];
                 dispatch_queue_t q_global = dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0);
                 dispatch_queue_t q_main = dispatch_get_main_queue();
@@ -724,11 +670,24 @@ UIImage *cameraImage = nil;//撮影、アルバム選択時の画像を一時的
             }else{
                 //画像がない
                 //④の返信 画像なしのリスト処理
-                if([[cellDic objectForKey:@"DELSTATUS"]  isEqual: @""]){
-                    memoLabel3.text = [cellDic objectForKey:@"RES"];
-                }else{
-                    memoLabel3.text = [NSString stringWithFormat:@"%@%@",[cellDic objectForKey:@"DELSTATUS"],[cellDic objectForKey:@"RES"]];
+                memoLabel3 = [Common getLabelSize:memoLabel3 text:memoStr labelWidth:resLabelWidth margin:0];
+                memoLabel3.text = [NSString stringWithFormat:@"%@",memoStr];
+                [memoLabel3 sizeToFit];
+                float labelHeight3 = labelH;
+                if (memoLabel3.frame.size.height > labelH) {
+                    labelHeight3 = memoLabel3.frame.size.height;
                 }
+                backGraundView3.frame = CGRectMake(backGraundView3.frame.origin.x, backGraundView3.frame.origin.y, backGraundView3.frame.size.width, backGraundView3.frame.size.height+labelHeight3);
+                //文字数で増えたぶんだけずらす
+                nemeLabel3.transform = CGAffineTransformIdentity;
+                nemeLabel3.transform = CGAffineTransformMakeTranslation(0, labelHeight3);
+                
+                delBtn3.transform = CGAffineTransformIdentity;
+                delBtn3.transform = CGAffineTransformMakeTranslation(0, labelHeight3);
+                
+                timeLabel3.transform = CGAffineTransformIdentity;
+                timeLabel3.transform = CGAffineTransformMakeTranslation(0, labelHeight3);
+                
                 nemeLabel3.text = [NSString stringWithFormat:@"%@",[cellDic objectForKey:@"WRITEUSERNAME"]];
                 timeLabel3.text = [NSString stringWithFormat:@"%@/%@/%@ %@:%@",[[cellDic objectForKey:@"WRITEDATE"] substringWithRange:NSMakeRange(0, 4)],[[cellDic objectForKey:@"WRITEDATE"] substringWithRange:NSMakeRange(4, 2)],[[cellDic objectForKey:@"WRITEDATE"] substringWithRange:NSMakeRange(6, 2)],[[cellDic objectForKey:@"WRITEDATE"] substringWithRange:NSMakeRange(8, 2)],[[cellDic objectForKey:@"WRITEDATE"] substringWithRange:NSMakeRange(10, 2)]];
                 //削除ボタンが管理者か自分で書き込んだ話題、返信の場合削除ボタン表示
@@ -772,11 +731,33 @@ UIImage *cameraImage = nil;//撮影、アルバム選択時の画像を一時的
                         if(![[cellDic objectForKey:@"IMAGEURL"]  isEqual: @""]){
                             //画像がある
                             //③の返信 画像ありのリスト処理
-                            if([[cellDic objectForKey:@"DELSTATUS"]  isEqual: @""]){
-                                memoLabel4.text = [cellDic objectForKey:@"RES"];
-                            }else{
-                                memoLabel4.text = [NSString stringWithFormat:@"%@%@",[cellDic objectForKey:@"DELSTATUS"],[cellDic objectForKey:@"RES"]];
+                            memoLabel4 = [Common getLabelSize:memoLabel4 text:memoStr labelWidth:resLabelWidth margin:0];
+                            memoLabel4.text = [NSString stringWithFormat:@"%@",memoStr];
+                            [memoLabel4 sizeToFit];
+                            float labelHeight4 = labelH;
+                            if (memoLabel4.frame.size.height > labelH) {
+                                labelHeight4 = memoLabel4.frame.size.height;
                             }
+                            backGraundView4.frame = CGRectMake(backGraundView4.frame.origin.x, backGraundView4.frame.origin.y, backGraundView4.frame.size.width, backGraundView4.frame.size.height+labelHeight4);
+                            //文字数で増えたぶんだけずらす
+                            image4.transform = CGAffineTransformIdentity;
+                            image4.transform = CGAffineTransformMakeTranslation(0, labelHeight4);
+                            
+                            nemeLabel4.transform = CGAffineTransformIdentity;
+                            nemeLabel4.transform = CGAffineTransformMakeTranslation(0, labelHeight4);
+                            
+                            delBtn4.transform = CGAffineTransformIdentity;
+                            delBtn4.transform = CGAffineTransformMakeTranslation(0, labelHeight4);
+                            
+                            timeLabel4.transform = CGAffineTransformIdentity;
+                            timeLabel4.transform = CGAffineTransformMakeTranslation(0, labelHeight4);
+                            
+                            indicator4.transform = CGAffineTransformIdentity;
+                            indicator4.transform = CGAffineTransformMakeTranslation(0, labelHeight4);
+                            
+                            imageBtn4.transform = CGAffineTransformIdentity;
+                            imageBtn4.transform = CGAffineTransformMakeTranslation(0, labelHeight4);
+                            
                             [indicator4 startAnimating];
                             dispatch_queue_t q_global = dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0);
                             dispatch_queue_t q_main = dispatch_get_main_queue();
@@ -811,11 +792,24 @@ UIImage *cameraImage = nil;//撮影、アルバム選択時の画像を一時的
                         }else{
                             //画像がない
                             //④の返信 画像なしのリスト処理
-                            if([[cellDic objectForKey:@"DELSTATUS"]  isEqual: @""]){
-                                memoLabel3.text = [cellDic objectForKey:@"RES"];
-                            }else{
-                                memoLabel3.text = [NSString stringWithFormat:@"%@%@",[cellDic objectForKey:@"DELSTATUS"],[cellDic objectForKey:@"RES"]];
+                            memoLabel3 = [Common getLabelSize:memoLabel3 text:memoStr labelWidth:resLabelWidth margin:0];
+                            memoLabel3.text = [NSString stringWithFormat:@"%@",memoStr];
+                            [memoLabel3 sizeToFit];
+                            float labelHeight3 = labelH;
+                            if (memoLabel3.frame.size.height > labelH) {
+                                labelHeight3 = memoLabel3.frame.size.height;
                             }
+                            backGraundView3.frame = CGRectMake(backGraundView3.frame.origin.x, backGraundView3.frame.origin.y, backGraundView3.frame.size.width, backGraundView3.frame.size.height+labelHeight3);
+                            //文字数で増えたぶんだけずらす
+                            nemeLabel3.transform = CGAffineTransformIdentity;
+                            nemeLabel3.transform = CGAffineTransformMakeTranslation(0, labelHeight3);
+                            
+                            delBtn3.transform = CGAffineTransformIdentity;
+                            delBtn3.transform = CGAffineTransformMakeTranslation(0, labelHeight3);
+                            
+                            timeLabel3.transform = CGAffineTransformIdentity;
+                            timeLabel3.transform = CGAffineTransformMakeTranslation(0, labelHeight3);
+                            
                             nemeLabel3.text = [NSString stringWithFormat:@"%@",[cellDic objectForKey:@"WRITEUSERNAME"]];
                             timeLabel3.text = [NSString stringWithFormat:@"%@/%@/%@ %@:%@",[[cellDic objectForKey:@"WRITEDATE"] substringWithRange:NSMakeRange(0, 4)],[[cellDic objectForKey:@"WRITEDATE"] substringWithRange:NSMakeRange(4, 2)],[[cellDic objectForKey:@"WRITEDATE"] substringWithRange:NSMakeRange(6, 2)],[[cellDic objectForKey:@"WRITEDATE"] substringWithRange:NSMakeRange(8, 2)],[[cellDic objectForKey:@"WRITEDATE"] substringWithRange:NSMakeRange(10, 2)]];
                             //削除ボタンが管理者か自分で書き込んだ話題、返信の場合削除ボタン表示
@@ -842,11 +836,36 @@ UIImage *cameraImage = nil;//撮影、アルバム選択時の画像を一時的
                         if(![[cellDic objectForKey:@"IMAGEURL"]  isEqual: @""]){
                             //画像がある
                             //⑤の返信 画像あり もっと見る表示のリスト処理
-                            if([[cellDic objectForKey:@"DELSTATUS"]  isEqual: @""]){
-                                memoLabel6.text = [cellDic objectForKey:@"RES"];
-                            }else{
-                                memoLabel6.text = [NSString stringWithFormat:@"%@%@",[cellDic objectForKey:@"DELSTATUS"],[cellDic objectForKey:@"RES"]];
+                            memoLabel6 = [Common getLabelSize:memoLabel6 text:memoStr labelWidth:resLabelWidth margin:0];
+                            memoLabel6.text = [NSString stringWithFormat:@"%@",memoStr];
+                            [memoLabel6 sizeToFit];
+                            float labelHeight6 = labelH;
+                            if (memoLabel6.frame.size.height > labelH) {
+                                labelHeight6 = memoLabel6.frame.size.height;
                             }
+                            backGraundView6.frame = CGRectMake(backGraundView6.frame.origin.x, backGraundView6.frame.origin.y, backGraundView6.frame.size.width, backGraundView6.frame.size.height+labelHeight6);
+                            //文字数で増えたぶんだけずらす
+                            image6.transform = CGAffineTransformIdentity;
+                            image6.transform = CGAffineTransformMakeTranslation(0, labelHeight6);
+                            
+                            nemeLabel6.transform = CGAffineTransformIdentity;
+                            nemeLabel6.transform = CGAffineTransformMakeTranslation(0, labelHeight6);
+                            
+                            delBtn6.transform = CGAffineTransformIdentity;
+                            delBtn6.transform = CGAffineTransformMakeTranslation(0, labelHeight6);
+                            
+                            timeLabel6.transform = CGAffineTransformIdentity;
+                            timeLabel6.transform = CGAffineTransformMakeTranslation(0, labelHeight6);
+                            
+                            lordBtn6.transform = CGAffineTransformIdentity;
+                            lordBtn6.transform = CGAffineTransformMakeTranslation(0, labelHeight6);
+                            
+                            indicator6.transform = CGAffineTransformIdentity;
+                            indicator6.transform = CGAffineTransformMakeTranslation(0, labelHeight6);
+                            
+                            imageBtn6.transform = CGAffineTransformIdentity;
+                            imageBtn6.transform = CGAffineTransformMakeTranslation(0, labelHeight6);
+                            
                             [indicator6 startAnimating];
                             dispatch_queue_t q_global = dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0);
                             dispatch_queue_t q_main = dispatch_get_main_queue();
@@ -865,11 +884,28 @@ UIImage *cameraImage = nil;//撮影、アルバム選択時の画像を一時的
                         }else{
                             //画像がない
                             //⑥の返信 画像なし もっと見る表示のリスト処理
-                            if([[cellDic objectForKey:@"DELSTATUS"]  isEqual: @""]){
-                                memoLabel5.text = [cellDic objectForKey:@"RES"];
-                            }else{
-                                memoLabel5.text = [NSString stringWithFormat:@"%@%@",[cellDic objectForKey:@"DELSTATUS"],[cellDic objectForKey:@"RES"]];
+                            memoLabel5 = [Common getLabelSize:memoLabel5 text:memoStr labelWidth:resLabelWidth margin:0];
+                            memoLabel5.text = [NSString stringWithFormat:@"%@",memoStr];
+                            [memoLabel5 sizeToFit];
+                            float labelHeight5 = labelH;
+                            if (memoLabel5.frame.size.height > labelH) {
+                                labelHeight5 = memoLabel5.frame.size.height;
                             }
+                            backGraundView5.frame = CGRectMake(backGraundView5.frame.origin.x, backGraundView5.frame.origin.y, backGraundView5.frame.size.width, backGraundView5.frame.size.height+labelHeight5);
+                            
+                            //文字数で増えたぶんだけずらす
+                            nemeLabel5.transform = CGAffineTransformIdentity;
+                            nemeLabel5.transform = CGAffineTransformMakeTranslation(0, labelHeight5);
+                            
+                            delBtn5.transform = CGAffineTransformIdentity;
+                            delBtn5.transform = CGAffineTransformMakeTranslation(0, labelHeight5);
+                            
+                            timeLabel5.transform = CGAffineTransformIdentity;
+                            timeLabel5.transform = CGAffineTransformMakeTranslation(0, labelHeight5);
+                            
+                            lordBtn5.transform = CGAffineTransformIdentity;
+                            lordBtn5.transform = CGAffineTransformMakeTranslation(0, labelHeight5);
+                            
                             nemeLabel5.text = [NSString stringWithFormat:@"%@",[cellDic objectForKey:@"WRITEUSERNAME"]];
                             timeLabel5.text = [NSString stringWithFormat:@"%@/%@/%@ %@:%@",[[cellDic objectForKey:@"WRITEDATE"] substringWithRange:NSMakeRange(0, 4)],[[cellDic objectForKey:@"WRITEDATE"] substringWithRange:NSMakeRange(4, 2)],[[cellDic objectForKey:@"WRITEDATE"] substringWithRange:NSMakeRange(6, 2)],[[cellDic objectForKey:@"WRITEDATE"] substringWithRange:NSMakeRange(8, 2)],[[cellDic objectForKey:@"WRITEDATE"] substringWithRange:NSMakeRange(10, 2)]];
                             [Common viewRoundedRect:backGraundView5 direction:2];
@@ -881,11 +917,33 @@ UIImage *cameraImage = nil;//撮影、アルバム選択時の画像を一時的
                     if(![[cellDic objectForKey:@"IMAGEURL"]  isEqual: @""]){
                         //画像がある
                         //③の返信 画像ありのリスト処理
-                        if([[cellDic objectForKey:@"DELSTATUS"]  isEqual: @""]){
-                            memoLabel4.text = [cellDic objectForKey:@"RES"];
-                        }else{
-                            memoLabel4.text = [NSString stringWithFormat:@"%@%@",[cellDic objectForKey:@"DELSTATUS"],[cellDic objectForKey:@"RES"]];
+                        memoLabel4 = [Common getLabelSize:memoLabel4 text:memoStr labelWidth:resLabelWidth margin:0];
+                        memoLabel4.text = [NSString stringWithFormat:@"%@",memoStr];
+                        [memoLabel4 sizeToFit];
+                        float labelHeight4 = labelH;
+                        if (memoLabel4.frame.size.height > labelH) {
+                            labelHeight4 = memoLabel4.frame.size.height;
                         }
+                        backGraundView4.frame = CGRectMake(backGraundView4.frame.origin.x, backGraundView4.frame.origin.y, backGraundView4.frame.size.width, backGraundView4.frame.size.height+labelHeight4);
+                        //文字数で増えたぶんだけずらす
+                        image4.transform = CGAffineTransformIdentity;
+                        image4.transform = CGAffineTransformMakeTranslation(0, labelHeight4);
+                        
+                        nemeLabel4.transform = CGAffineTransformIdentity;
+                        nemeLabel4.transform = CGAffineTransformMakeTranslation(0, labelHeight4);
+                        
+                        delBtn4.transform = CGAffineTransformIdentity;
+                        delBtn4.transform = CGAffineTransformMakeTranslation(0, labelHeight4);
+                        
+                        timeLabel4.transform = CGAffineTransformIdentity;
+                        timeLabel4.transform = CGAffineTransformMakeTranslation(0, labelHeight4);
+                        
+                        indicator4.transform = CGAffineTransformIdentity;
+                        indicator4.transform = CGAffineTransformMakeTranslation(0, labelHeight4);
+                        
+                        imageBtn4.transform = CGAffineTransformIdentity;
+                        imageBtn4.transform = CGAffineTransformMakeTranslation(0, labelHeight4);
+                        
                         [indicator4 startAnimating];
                         dispatch_queue_t q_global = dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0);
                         dispatch_queue_t q_main = dispatch_get_main_queue();
@@ -920,11 +978,24 @@ UIImage *cameraImage = nil;//撮影、アルバム選択時の画像を一時的
                     }else{
                         //画像がない
                         //④の返信 画像なしのリスト処理
-                        if([[cellDic objectForKey:@"DELSTATUS"]  isEqual: @""]){
-                            memoLabel3.text = [cellDic objectForKey:@"RES"];
-                        }else{
-                            memoLabel3.text = [NSString stringWithFormat:@"%@%@",[cellDic objectForKey:@"DELSTATUS"],[cellDic objectForKey:@"RES"]];
+                        memoLabel3 = [Common getLabelSize:memoLabel3 text:memoStr labelWidth:resLabelWidth margin:0];
+                        memoLabel3.text = [NSString stringWithFormat:@"%@",memoStr];
+                        [memoLabel3 sizeToFit];
+                        float labelHeight3 = labelH;
+                        if (memoLabel3.frame.size.height > labelH) {
+                            labelHeight3 = memoLabel3.frame.size.height;
                         }
+                        backGraundView3.frame = CGRectMake(backGraundView3.frame.origin.x, backGraundView3.frame.origin.y, backGraundView3.frame.size.width, backGraundView3.frame.size.height+labelHeight3);
+                        //文字数で増えたぶんだけずらす
+                        nemeLabel3.transform = CGAffineTransformIdentity;
+                        nemeLabel3.transform = CGAffineTransformMakeTranslation(0, labelHeight3);
+                        
+                        delBtn3.transform = CGAffineTransformIdentity;
+                        delBtn3.transform = CGAffineTransformMakeTranslation(0, labelHeight3);
+                        
+                        timeLabel3.transform = CGAffineTransformIdentity;
+                        timeLabel3.transform = CGAffineTransformMakeTranslation(0, labelHeight3);
+                        
                         nemeLabel3.text = [NSString stringWithFormat:@"%@",[cellDic objectForKey:@"WRITEUSERNAME"]];
                         timeLabel3.text = [NSString stringWithFormat:@"%@/%@/%@ %@:%@",[[cellDic objectForKey:@"WRITEDATE"] substringWithRange:NSMakeRange(0, 4)],[[cellDic objectForKey:@"WRITEDATE"] substringWithRange:NSMakeRange(4, 2)],[[cellDic objectForKey:@"WRITEDATE"] substringWithRange:NSMakeRange(6, 2)],[[cellDic objectForKey:@"WRITEDATE"] substringWithRange:NSMakeRange(8, 2)],[[cellDic objectForKey:@"WRITEDATE"] substringWithRange:NSMakeRange(10, 2)]];
                         //削除ボタンが管理者か自分で書き込んだ話題、返信の場合削除ボタン表示
@@ -954,11 +1025,33 @@ UIImage *cameraImage = nil;//撮影、アルバム選択時の画像を一時的
                 if(![[cellDic objectForKey:@"IMAGEURL"]  isEqual: @""]){
                     //画像がある
                     //③の返信 画像ありのリスト処理
-                    if([[cellDic objectForKey:@"DELSTATUS"]  isEqual: @""]){
-                        memoLabel4.text = [cellDic objectForKey:@"RES"];
-                    }else{
-                        memoLabel4.text = [NSString stringWithFormat:@"%@%@",[cellDic objectForKey:@"DELSTATUS"],[cellDic objectForKey:@"RES"]];
+                    memoLabel4 = [Common getLabelSize:memoLabel4 text:memoStr labelWidth:resLabelWidth margin:0];
+                    memoLabel4.text = [NSString stringWithFormat:@"%@",memoStr];
+                    [memoLabel4 sizeToFit];
+                    float labelHeight4 = labelH;
+                    if (memoLabel4.frame.size.height > labelH) {
+                        labelHeight4 = memoLabel4.frame.size.height;
                     }
+                    backGraundView4.frame = CGRectMake(backGraundView4.frame.origin.x, backGraundView4.frame.origin.y, backGraundView4.frame.size.width, backGraundView4.frame.size.height+labelHeight4);
+                    //文字数で増えたぶんだけずらす
+                    image4.transform = CGAffineTransformIdentity;
+                    image4.transform = CGAffineTransformMakeTranslation(0, labelHeight4);
+                    
+                    nemeLabel4.transform = CGAffineTransformIdentity;
+                    nemeLabel4.transform = CGAffineTransformMakeTranslation(0, labelHeight4);
+                    
+                    delBtn4.transform = CGAffineTransformIdentity;
+                    delBtn4.transform = CGAffineTransformMakeTranslation(0, labelHeight4);
+                    
+                    timeLabel4.transform = CGAffineTransformIdentity;
+                    timeLabel4.transform = CGAffineTransformMakeTranslation(0, labelHeight4);
+                    
+                    indicator4.transform = CGAffineTransformIdentity;
+                    indicator4.transform = CGAffineTransformMakeTranslation(0, labelHeight4);
+                    
+                    imageBtn4.transform = CGAffineTransformIdentity;
+                    imageBtn4.transform = CGAffineTransformMakeTranslation(0, labelHeight4);
+                    
                     [indicator4 startAnimating];
                     dispatch_queue_t q_global = dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0);
                     dispatch_queue_t q_main = dispatch_get_main_queue();
@@ -993,11 +1086,24 @@ UIImage *cameraImage = nil;//撮影、アルバム選択時の画像を一時的
                 }else{
                     //画像がない
                     //④の返信 画像なしのリスト処理
-                    if([[cellDic objectForKey:@"DELSTATUS"]  isEqual: @""]){
-                        memoLabel3.text = [cellDic objectForKey:@"RES"];
-                    }else{
-                        memoLabel3.text = [NSString stringWithFormat:@"%@%@",[cellDic objectForKey:@"DELSTATUS"],[cellDic objectForKey:@"RES"]];
+                    memoLabel3 = [Common getLabelSize:memoLabel3 text:memoStr labelWidth:resLabelWidth margin:0];
+                    memoLabel3.text = [NSString stringWithFormat:@"%@",memoStr];
+                    [memoLabel3 sizeToFit];
+                    float labelHeight3 = labelH;
+                    if (memoLabel3.frame.size.height > labelH) {
+                        labelHeight3 = memoLabel3.frame.size.height;
                     }
+                    backGraundView3.frame = CGRectMake(backGraundView3.frame.origin.x, backGraundView3.frame.origin.y, backGraundView3.frame.size.width, backGraundView3.frame.size.height+labelHeight3);
+                    //文字数で増えたぶんだけずらす
+                    nemeLabel3.transform = CGAffineTransformIdentity;
+                    nemeLabel3.transform = CGAffineTransformMakeTranslation(0, labelHeight3);
+                    
+                    delBtn3.transform = CGAffineTransformIdentity;
+                    delBtn3.transform = CGAffineTransformMakeTranslation(0, labelHeight3);
+                    
+                    timeLabel3.transform = CGAffineTransformIdentity;
+                    timeLabel3.transform = CGAffineTransformMakeTranslation(0, labelHeight3);
+                    
                     nemeLabel3.text = [NSString stringWithFormat:@"%@",[cellDic objectForKey:@"WRITEUSERNAME"]];
                     timeLabel3.text = [NSString stringWithFormat:@"%@/%@/%@ %@:%@",[[cellDic objectForKey:@"WRITEDATE"] substringWithRange:NSMakeRange(0, 4)],[[cellDic objectForKey:@"WRITEDATE"] substringWithRange:NSMakeRange(4, 2)],[[cellDic objectForKey:@"WRITEDATE"] substringWithRange:NSMakeRange(6, 2)],[[cellDic objectForKey:@"WRITEDATE"] substringWithRange:NSMakeRange(8, 2)],[[cellDic objectForKey:@"WRITEDATE"] substringWithRange:NSMakeRange(10, 2)]];
                     //削除ボタンが管理者か自分で書き込んだ話題、返信の場合削除ボタン表示
@@ -1101,7 +1207,6 @@ didFinishPickingMediaWithInfo:(NSDictionary *)info {
     [self keyBoardCloes];
     self.dialogBaseView.hidden = YES;
     [self getChatAry];
-    [self.chatTableView reloadData];
 }
 - (IBAction)cancelBtn:(id)sender {
     [self keyBoardCloes];
@@ -1195,7 +1300,6 @@ didFinishPickingMediaWithInfo:(NSDictionary *)info {
     //rescount取得して話題を取得しtopicidを取得する
     openTopicId = [cellDic objectForKey:@"TOPICID"];
     [self getChatAry];
-    [self.chatTableView reloadData];
 }
 //cell削除ボタン
 - (void)deleteTopicBtn:(UIButton *)sender event:(UIEvent *)event {
@@ -1249,7 +1353,6 @@ didFinishPickingMediaWithInfo:(NSDictionary *)info {
             [self presentViewController:alertController animated:YES completion:nil];
         }else{
             [self getChatAry];
-            [self.chatTableView reloadData];
         }
     }else{
         NSDictionary *cellDic = [self.allChatAry objectAtIndex:indexPath.row];
@@ -1264,7 +1367,6 @@ didFinishPickingMediaWithInfo:(NSDictionary *)info {
             [self presentViewController:alertController animated:YES completion:nil];
         }else{
             [self getChatAry];
-            [self.chatTableView reloadData];
         }
     }
 }
@@ -1314,7 +1416,6 @@ didFinishPickingMediaWithInfo:(NSDictionary *)info {
     [refreshControl beginRefreshing];
     // ここの間に更新のロジックを書く
     [self getChatAry];
-    [self.chatTableView reloadData];
     [refreshControl endRefreshing];
 }
 - (IBAction)allUserBtn:(id)sender {
@@ -1432,7 +1533,6 @@ didFinishPickingMediaWithInfo:(NSDictionary *)info {
             }else{
                 NSLog(@"is_exists = %@",@"NO");
                 [self getChatAry];
-                [self.chatTableView reloadData];
             }
             cameraImage = nil;
         }
@@ -1441,5 +1541,433 @@ didFinishPickingMediaWithInfo:(NSDictionary *)info {
         }
         
     }] resume];
+}
+- (void)updateVisibleCells {
+    for (UITableViewCell *cell in [self.chatTableView visibleCells]){
+        [self updateCell:cell atIndexPath:[self.chatTableView indexPathForCell:cell]];
+    }
+}
+
+//for cell updating
+- (void)updateCell:(UITableViewCell *)cell atIndexPath:(NSIndexPath *)indexPath {
+    //リストの配列番号取得
+    //allTopicListAryからリストの配列番号の要素をNSDictionaryで取り出す
+    NSDictionary *cellDic = [self.allChatAry objectAtIndex:indexPath.row];
+    NSString *memoStr = @"";
+    if([cellDic.allKeys containsObject:@"TOPICID"]){
+        if([[cellDic objectForKey:@"DELSTATUS"]  isEqual: @""]){
+            memoStr = [cellDic objectForKey:@"TOPIC"];
+        }else{
+            memoStr = [NSString stringWithFormat:@"%@%@",[cellDic objectForKey:@"DELSTATUS"],[cellDic objectForKey:@"TOPIC"]];
+        }
+    }else{
+        if([[cellDic objectForKey:@"DELSTATUS"]  isEqual: @""]){
+            memoStr = [cellDic objectForKey:@"RES"];
+        }else{
+            memoStr = [NSString stringWithFormat:@"%@%@",[cellDic objectForKey:@"DELSTATUS"],[cellDic objectForKey:@"RES"]];
+        }
+    }
+    int	resCount = 0;
+    if([cellDic.allKeys containsObject:@"RESCOUNT"]){
+        //"RESCOUNT"の数値を取得しておく
+        resCount = [[cellDic objectForKey:@"RESCOUNT"] intValue];
+    }
+    
+    if ([cell.reuseIdentifier  isEqual: @"AdminCell"]) {
+        UIView *backGraundView1 = (UIView *)[cell viewWithTag:1];
+        [Common viewRoundedRect:backGraundView1 direction:1];
+        UILabel *memoLabel1 = (UILabel *)[cell viewWithTag:2];
+        memoLabel1.textColor = [UIColor blackColor];
+        UILabel *nemeLabel1 = (UILabel *)[cell viewWithTag:3];
+        nemeLabel1.adjustsFontSizeToFitWidth = YES;
+        nemeLabel1.minimumScaleFactor = 5.f/30.f;
+        UILabel *countLabel1 = (UILabel *)[cell viewWithTag:4];
+        UIButton *delBtn1 = (UIButton *)[cell viewWithTag:5];
+        delBtn1.layer.cornerRadius = 20;
+        delBtn1.clipsToBounds = true;
+        UIButton *reBtn1 = (UIButton *)[cell viewWithTag:6];
+        reBtn1.layer.cornerRadius = 10;
+        reBtn1.clipsToBounds = true;
+        UILabel *timeLabel1 = (UILabel *)[cell viewWithTag:7];
+        memoLabel1 = [Common getLabelSize:memoLabel1 text:memoStr labelWidth:topicLabelWidth margin:0];
+        memoLabel1.text = [NSString stringWithFormat:@"%@",memoStr];
+        float labelHeight1 = labelH;
+        if (memoLabel1.frame.size.height > labelH) {
+            labelHeight1 = memoLabel1.frame.size.height;
+        }
+        backGraundView1.frame = CGRectMake(backGraundView1.frame.origin.x, backGraundView1.frame.origin.y, backGraundView1.frame.size.width, backGraundView1.frame.size.height+labelHeight1);
+        //文字数で増えたぶんだけずらす
+        nemeLabel1.transform = CGAffineTransformIdentity;
+        nemeLabel1.transform = CGAffineTransformMakeTranslation(0, labelHeight1);
+        
+        countLabel1.transform = CGAffineTransformIdentity;
+        countLabel1.transform = CGAffineTransformMakeTranslation(0, labelHeight1);
+        
+        delBtn1.transform = CGAffineTransformIdentity;
+        delBtn1.transform = CGAffineTransformMakeTranslation(0, labelHeight1);
+        
+        reBtn1.transform = CGAffineTransformIdentity;
+        reBtn1.transform = CGAffineTransformMakeTranslation(0, labelHeight1);
+        
+        timeLabel1.transform = CGAffineTransformIdentity;
+        timeLabel1.transform = CGAffineTransformMakeTranslation(0, labelHeight1);
+        
+        nemeLabel1.text = [NSString stringWithFormat:@"%@",[cellDic objectForKey:@"WRITEUSERNAME"]];
+        timeLabel1.text = [NSString stringWithFormat:@"%@/%@/%@ %@:%@",[[cellDic objectForKey:@"WRITEDATE"] substringWithRange:NSMakeRange(0, 4)],[[cellDic objectForKey:@"WRITEDATE"] substringWithRange:NSMakeRange(4, 2)],[[cellDic objectForKey:@"WRITEDATE"] substringWithRange:NSMakeRange(6, 2)],[[cellDic objectForKey:@"WRITEDATE"] substringWithRange:NSMakeRange(8, 2)],[[cellDic objectForKey:@"WRITEDATE"] substringWithRange:NSMakeRange(10, 2)]];
+        countLabel1.text = [NSString stringWithFormat:@"返信数：%@件",[cellDic objectForKey:@"RESCOUNT"]];
+        //削除ボタンが管理者か自分で書き込んだ話題、返信の場合削除ボタン表示
+        if ([self.manageId isEqual: [Common getUserID]] || [[cellDic objectForKey:@"WRITEUSERID"] isEqual: [Common getUserID]]) {
+            delBtn1.hidden = NO;
+        }else{
+            delBtn1.hidden = YES;
+        }
+        if (resCount == 0) {
+            [Common viewRoundedRect:backGraundView1 direction:3];
+        }
+    }
+    if ([cell.reuseIdentifier  isEqual: @"AdminImageCell"]) {
+        UIView *backGraundView2 = (UIView *)[cell viewWithTag:1];
+        [Common viewRoundedRect:backGraundView2 direction:1];
+        UILabel *memoLabel2 = (UILabel *)[cell viewWithTag:2];
+        memoLabel2.textColor = [UIColor blackColor];
+        UIImageView *image2 = (UIImageView *)[cell viewWithTag:3];
+        image2.contentMode = UIViewContentModeScaleAspectFit;
+        UILabel *nemeLabel2 = (UILabel *)[cell viewWithTag:4];
+        nemeLabel2.adjustsFontSizeToFitWidth = YES;
+        nemeLabel2.minimumScaleFactor = 5.f/30.f;
+        UILabel *countLabel2 = (UILabel *)[cell viewWithTag:5];
+        UIButton *delBtn2 = (UIButton *)[cell viewWithTag:6];
+        delBtn2.layer.cornerRadius = 20;
+        delBtn2.clipsToBounds = true;
+        UIButton *reBtn2 = (UIButton *)[cell viewWithTag:7];
+        reBtn2.layer.cornerRadius = 10;
+        reBtn2.clipsToBounds = true;
+        UILabel *timeLabel2 = (UILabel *)[cell viewWithTag:8];
+        UIActivityIndicatorView *indicator2 = (UIActivityIndicatorView *)[cell viewWithTag:9];
+        indicator2.hidesWhenStopped = YES;
+        UIButton *imageBtn2 = (UIButton *)[cell viewWithTag:10];
+        
+        memoLabel2 = [Common getLabelSize:memoLabel2 text:memoStr labelWidth:topicLabelWidth margin:0];
+        memoLabel2.text = [NSString stringWithFormat:@"%@",memoStr];
+        [memoLabel2 sizeToFit];
+        float labelHeight2 = labelH;
+        if (memoLabel2.frame.size.height > labelH) {
+            labelHeight2 = memoLabel2.frame.size.height;
+        }
+        backGraundView2.frame = CGRectMake(backGraundView2.frame.origin.x, backGraundView2.frame.origin.y, backGraundView2.frame.size.width, backGraundView2.frame.size.height+labelHeight2);
+        //文字数で増えたぶんだけずらす
+        image2.transform = CGAffineTransformIdentity;
+        image2.transform = CGAffineTransformMakeTranslation(0, labelHeight2);
+        
+        nemeLabel2.transform = CGAffineTransformIdentity;
+        nemeLabel2.transform = CGAffineTransformMakeTranslation(0, labelHeight2);
+        
+        countLabel2.transform = CGAffineTransformIdentity;
+        countLabel2.transform = CGAffineTransformMakeTranslation(0, labelHeight2);
+        
+        delBtn2.transform = CGAffineTransformIdentity;
+        delBtn2.transform = CGAffineTransformMakeTranslation(0, labelHeight2);
+        
+        reBtn2.transform = CGAffineTransformIdentity;
+        reBtn2.transform = CGAffineTransformMakeTranslation(0, labelHeight2);
+        
+        timeLabel2.transform = CGAffineTransformIdentity;
+        timeLabel2.transform = CGAffineTransformMakeTranslation(0, labelHeight2);
+        
+        indicator2.transform = CGAffineTransformIdentity;
+        indicator2.transform = CGAffineTransformMakeTranslation(0, labelHeight2);
+        
+        imageBtn2.transform = CGAffineTransformIdentity;
+        imageBtn2.transform = CGAffineTransformMakeTranslation(0, labelHeight2);
+        
+//        [indicator2 startAnimating];
+//        dispatch_queue_t q_global = dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0);
+//        dispatch_queue_t q_main = dispatch_get_main_queue();
+//        image2.image = nil;
+//        dispatch_async(q_global, ^{
+//            UIImage *image = [self getImage:[cellDic objectForKey:@"IMAGEURL"]];
+//            dispatch_async(q_main, ^{
+//                image2.image = image;
+//                [indicator2 stopAnimating];
+//            });
+//        });
+        
+        nemeLabel2.text = [NSString stringWithFormat:@"%@",[cellDic objectForKey:@"WRITEUSERNAME"]];
+        timeLabel2.text = [NSString stringWithFormat:@"%@/%@/%@ %@:%@",[[cellDic objectForKey:@"WRITEDATE"] substringWithRange:NSMakeRange(0, 4)],[[cellDic objectForKey:@"WRITEDATE"] substringWithRange:NSMakeRange(4, 2)],[[cellDic objectForKey:@"WRITEDATE"] substringWithRange:NSMakeRange(6, 2)],[[cellDic objectForKey:@"WRITEDATE"] substringWithRange:NSMakeRange(8, 2)],[[cellDic objectForKey:@"WRITEDATE"] substringWithRange:NSMakeRange(10, 2)]];
+        countLabel2.text = [NSString stringWithFormat:@"返信数：%@件",[cellDic objectForKey:@"RESCOUNT"]];
+        //削除ボタンが管理者か自分で書き込んだ話題、返信の場合削除ボタン表示
+        if ([self.manageId isEqual: [Common getUserID]] || [[cellDic objectForKey:@"WRITEUSERID"] isEqual: [Common getUserID]] || [[cellDic objectForKey:@"DELSTATUS"] isEqual: @""]) {
+            delBtn2.hidden = NO;
+        }else{
+            delBtn2.hidden = YES;
+        }
+        if (resCount == 0) {
+            [Common viewRoundedRect:backGraundView2 direction:3];
+        }
+    }
+    if ([cell.reuseIdentifier  isEqual: @"ResCell"]) {
+        UIView *backGraundView3 = (UIView *)[cell viewWithTag:1];
+        [Common viewRoundedRect:backGraundView3 direction:4];
+        UILabel *memoLabel3 = (UILabel *)[cell viewWithTag:2];
+        memoLabel3.textColor = [UIColor blackColor];
+        
+        UILabel *nemeLabel3 = (UILabel *)[cell viewWithTag:3];
+        nemeLabel3.adjustsFontSizeToFitWidth = YES;
+        nemeLabel3.minimumScaleFactor = 5.f/30.f;
+        UIButton *delBtn3 = (UIButton *)[cell viewWithTag:4];
+        delBtn3.layer.cornerRadius = 20;
+        delBtn3.clipsToBounds = true;
+        UILabel *timeLabel3 = (UILabel *)[cell viewWithTag:5];
+        
+        memoLabel3 = [Common getLabelSize:memoLabel3 text:memoStr labelWidth:resLabelWidth margin:0];
+        memoLabel3.text = [NSString stringWithFormat:@"%@",memoStr];
+        [memoLabel3 sizeToFit];
+        float labelHeight3 = labelH;
+        if (memoLabel3.frame.size.height > labelH) {
+            labelHeight3 = memoLabel3.frame.size.height;
+        }
+        backGraundView3.frame = CGRectMake(backGraundView3.frame.origin.x, backGraundView3.frame.origin.y, backGraundView3.frame.size.width, backGraundView3.frame.size.height+labelHeight3);
+        //文字数で増えたぶんだけずらす
+        nemeLabel3.transform = CGAffineTransformIdentity;
+        nemeLabel3.transform = CGAffineTransformMakeTranslation(0, labelHeight3);
+        
+        delBtn3.transform = CGAffineTransformIdentity;
+        delBtn3.transform = CGAffineTransformMakeTranslation(0, labelHeight3);
+        
+        timeLabel3.transform = CGAffineTransformIdentity;
+        timeLabel3.transform = CGAffineTransformMakeTranslation(0, labelHeight3);
+        
+        nemeLabel3.text = [NSString stringWithFormat:@"%@",[cellDic objectForKey:@"WRITEUSERNAME"]];
+        timeLabel3.text = [NSString stringWithFormat:@"%@/%@/%@ %@:%@",[[cellDic objectForKey:@"WRITEDATE"] substringWithRange:NSMakeRange(0, 4)],[[cellDic objectForKey:@"WRITEDATE"] substringWithRange:NSMakeRange(4, 2)],[[cellDic objectForKey:@"WRITEDATE"] substringWithRange:NSMakeRange(6, 2)],[[cellDic objectForKey:@"WRITEDATE"] substringWithRange:NSMakeRange(8, 2)],[[cellDic objectForKey:@"WRITEDATE"] substringWithRange:NSMakeRange(10, 2)]];
+        //削除ボタンが管理者か自分で書き込んだ話題、返信の場合削除ボタン表示
+        if ([self.manageId isEqual: [Common getUserID]] || [[cellDic objectForKey:@"WRITEUSERID"] isEqual: [Common getUserID]]) {
+            delBtn3.hidden = NO;
+        }else{
+            delBtn3.hidden = YES;
+        }
+        if (resCount == 1 && indexPath.row >= 1) {
+            NSDictionary *dic = [self.allChatAry objectAtIndex:indexPath.row-1];
+            if([dic.allKeys containsObject:@"TOPICID"]){
+                [Common viewRoundedRect:backGraundView3 direction:2];
+            }
+        }
+        if (resCount == 2 && indexPath.row >= 2) {
+            NSDictionary *dic = [self.allChatAry objectAtIndex:indexPath.row-2];
+            if([dic.allKeys containsObject:@"TOPICID"]){
+                [Common viewRoundedRect:backGraundView3 direction:2];
+            }
+        }
+        if (resCount == 3 && indexPath.row >= 3) {
+            NSDictionary *dic = [self.allChatAry objectAtIndex:indexPath.row-3];
+            if([dic.allKeys containsObject:@"TOPICID"]){
+                [Common viewRoundedRect:backGraundView3 direction:2];
+            }
+        }
+    }
+    if ([cell.reuseIdentifier  isEqual: @"ResImageCell"]) {
+        UIView *backGraundView4 = (UIView *)[cell viewWithTag:1];
+        [Common viewRoundedRect:backGraundView4 direction:4];
+        UILabel *memoLabel4 = (UILabel *)[cell viewWithTag:2];
+        memoLabel4.textColor = [UIColor blackColor];
+        UIImageView *image4 = (UIImageView *)[cell viewWithTag:3];
+        image4.contentMode = UIViewContentModeScaleAspectFit;
+        UILabel *nemeLabel4 = (UILabel *)[cell viewWithTag:4];
+        nemeLabel4.adjustsFontSizeToFitWidth = YES;
+        nemeLabel4.minimumScaleFactor = 5.f/30.f;
+        UIButton *delBtn4 = (UIButton *)[cell viewWithTag:5];
+        delBtn4.layer.cornerRadius = 20;
+        delBtn4.clipsToBounds = true;
+        UILabel *timeLabel4 = (UILabel *)[cell viewWithTag:6];
+        UIActivityIndicatorView *indicator4 = (UIActivityIndicatorView *)[cell viewWithTag:9];
+        indicator4.hidesWhenStopped = YES;
+        UIButton *imageBtn4 = (UIButton *)[cell viewWithTag:10];
+        memoLabel4 = [Common getLabelSize:memoLabel4 text:memoStr labelWidth:resLabelWidth margin:0];
+        memoLabel4.text = [NSString stringWithFormat:@"%@",memoStr];
+        [memoLabel4 sizeToFit];
+        float labelHeight4 = labelH;
+        if (memoLabel4.frame.size.height > labelH) {
+            labelHeight4 = memoLabel4.frame.size.height;
+        }
+        backGraundView4.frame = CGRectMake(backGraundView4.frame.origin.x, backGraundView4.frame.origin.y, backGraundView4.frame.size.width, backGraundView4.frame.size.height+labelHeight4);
+        //文字数で増えたぶんだけずらす
+        image4.transform = CGAffineTransformIdentity;
+        image4.transform = CGAffineTransformMakeTranslation(0, labelHeight4);
+        
+        nemeLabel4.transform = CGAffineTransformIdentity;
+        nemeLabel4.transform = CGAffineTransformMakeTranslation(0, labelHeight4);
+        
+        delBtn4.transform = CGAffineTransformIdentity;
+        delBtn4.transform = CGAffineTransformMakeTranslation(0, labelHeight4);
+        
+        timeLabel4.transform = CGAffineTransformIdentity;
+        timeLabel4.transform = CGAffineTransformMakeTranslation(0, labelHeight4);
+        
+        indicator4.transform = CGAffineTransformIdentity;
+        indicator4.transform = CGAffineTransformMakeTranslation(0, labelHeight4);
+        
+        imageBtn4.transform = CGAffineTransformIdentity;
+        imageBtn4.transform = CGAffineTransformMakeTranslation(0, labelHeight4);
+        
+//        [indicator4 startAnimating];
+//        dispatch_queue_t q_global = dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0);
+//        dispatch_queue_t q_main = dispatch_get_main_queue();
+//        image4.image = nil;
+//        dispatch_async(q_global, ^{
+//            UIImage *image = [self getImage:[cellDic objectForKey:@"IMAGEURL"]];
+//            dispatch_async(q_main, ^{
+//                image4.image = image;
+//                [indicator4 stopAnimating];
+//            });
+//        });
+        nemeLabel4.text = [NSString stringWithFormat:@"%@",[cellDic objectForKey:@"WRITEUSERNAME"]];
+        timeLabel4.text = [NSString stringWithFormat:@"%@/%@/%@ %@:%@",[[cellDic objectForKey:@"WRITEDATE"] substringWithRange:NSMakeRange(0, 4)],[[cellDic objectForKey:@"WRITEDATE"] substringWithRange:NSMakeRange(4, 2)],[[cellDic objectForKey:@"WRITEDATE"] substringWithRange:NSMakeRange(6, 2)],[[cellDic objectForKey:@"WRITEDATE"] substringWithRange:NSMakeRange(8, 2)],[[cellDic objectForKey:@"WRITEDATE"] substringWithRange:NSMakeRange(10, 2)]];
+        //削除ボタンが管理者か自分で書き込んだ話題、返信の場合削除ボタン表示
+        if ([self.manageId isEqual: [Common getUserID]] || [[cellDic objectForKey:@"WRITEUSERID"] isEqual: [Common getUserID]]) {
+            delBtn4.hidden = NO;
+        }else{
+            delBtn4.hidden = YES;
+        }
+        if (resCount == 1 && indexPath.row >= 1) {
+            NSDictionary *dic = [self.allChatAry objectAtIndex:indexPath.row-1];
+            if([dic.allKeys containsObject:@"TOPICID"]){
+                [Common viewRoundedRect:backGraundView4 direction:2];
+            }
+        }
+        if (resCount == 2 && indexPath.row >= 2) {
+            NSDictionary *dic = [self.allChatAry objectAtIndex:indexPath.row-2];
+            if([dic.allKeys containsObject:@"TOPICID"]){
+                [Common viewRoundedRect:backGraundView4 direction:2];
+            }
+        }
+        if (resCount == 3 && indexPath.row >= 3) {
+            NSDictionary *dic = [self.allChatAry objectAtIndex:indexPath.row-3];
+            if([dic.allKeys containsObject:@"TOPICID"]){
+                [Common viewRoundedRect:backGraundView4 direction:2];
+            }
+        }
+    }
+    if ([cell.reuseIdentifier  isEqual: @"ResLordCell"]) {
+        UIView *backGraundView5 = (UIView *)[cell viewWithTag:1];
+        [Common viewRoundedRect:backGraundView5 direction:2];
+        UILabel *memoLabel5 = (UILabel *)[cell viewWithTag:2];
+        memoLabel5.textColor = [UIColor blackColor];
+        
+        UILabel *nemeLabel5 = (UILabel *)[cell viewWithTag:3];
+        nemeLabel5.adjustsFontSizeToFitWidth = YES;
+        nemeLabel5.minimumScaleFactor = 5.f/30.f;
+        UIButton *delBtn5 = (UIButton *)[cell viewWithTag:4];
+        delBtn5.layer.cornerRadius = 20;
+        delBtn5.clipsToBounds = true;
+        UILabel *timeLabel5 = (UILabel *)[cell viewWithTag:5];
+        UIButton *lordBtn5 = (UIButton *)[cell viewWithTag:6];
+        
+        memoLabel5 = [Common getLabelSize:memoLabel5 text:memoStr labelWidth:resLabelWidth margin:0];
+        memoLabel5.text = [NSString stringWithFormat:@"%@",memoStr];
+        [memoLabel5 sizeToFit];
+        float labelHeight5 = labelH;
+        if (memoLabel5.frame.size.height > labelH) {
+            labelHeight5 = memoLabel5.frame.size.height;
+        }
+        backGraundView5.frame = CGRectMake(backGraundView5.frame.origin.x, backGraundView5.frame.origin.y, backGraundView5.frame.size.width, backGraundView5.frame.size.height+labelHeight5);
+        
+        //文字数で増えたぶんだけずらす
+        nemeLabel5.transform = CGAffineTransformIdentity;
+        nemeLabel5.transform = CGAffineTransformMakeTranslation(0, labelHeight5);
+        
+        delBtn5.transform = CGAffineTransformIdentity;
+        delBtn5.transform = CGAffineTransformMakeTranslation(0, labelHeight5);
+        
+        timeLabel5.transform = CGAffineTransformIdentity;
+        timeLabel5.transform = CGAffineTransformMakeTranslation(0, labelHeight5);
+        
+        lordBtn5.transform = CGAffineTransformIdentity;
+        lordBtn5.transform = CGAffineTransformMakeTranslation(0, labelHeight5);
+        
+        nemeLabel5.text = [NSString stringWithFormat:@"%@",[cellDic objectForKey:@"WRITEUSERNAME"]];
+        timeLabel5.text = [NSString stringWithFormat:@"%@/%@/%@ %@:%@",[[cellDic objectForKey:@"WRITEDATE"] substringWithRange:NSMakeRange(0, 4)],[[cellDic objectForKey:@"WRITEDATE"] substringWithRange:NSMakeRange(4, 2)],[[cellDic objectForKey:@"WRITEDATE"] substringWithRange:NSMakeRange(6, 2)],[[cellDic objectForKey:@"WRITEDATE"] substringWithRange:NSMakeRange(8, 2)],[[cellDic objectForKey:@"WRITEDATE"] substringWithRange:NSMakeRange(10, 2)]];
+        [Common viewRoundedRect:backGraundView5 direction:2];
+    }
+    if ([cell.reuseIdentifier  isEqual: @"ResImageLordCell"]) {
+        UIView *backGraundView6 = (UIView *)[cell viewWithTag:1];
+        [Common viewRoundedRect:backGraundView6 direction:2];
+        UILabel *memoLabel6 = (UILabel *)[cell viewWithTag:2];
+        memoLabel6.textColor = [UIColor blackColor];
+        UIImageView *image6 = (UIImageView *)[cell viewWithTag:3];
+        image6.contentMode = UIViewContentModeScaleAspectFit;
+        UILabel *nemeLabel6 = (UILabel *)[cell viewWithTag:4];
+        nemeLabel6.adjustsFontSizeToFitWidth = YES;
+        nemeLabel6.minimumScaleFactor = 5.f/30.f;
+        UIButton *delBtn6 = (UIButton *)[cell viewWithTag:5];
+        delBtn6.layer.cornerRadius = 20;
+        delBtn6.clipsToBounds = true;
+        UILabel *timeLabel6 = (UILabel *)[cell viewWithTag:6];
+        UIButton *lordBtn6 = (UIButton *)[cell viewWithTag:7];
+        UIActivityIndicatorView *indicator6 = (UIActivityIndicatorView *)[cell viewWithTag:9];
+        indicator6.hidesWhenStopped = YES;
+        UIButton *imageBtn6 = (UIButton *)[cell viewWithTag:10];
+        memoLabel6 = [Common getLabelSize:memoLabel6 text:memoStr labelWidth:resLabelWidth margin:0];
+        memoLabel6.text = [NSString stringWithFormat:@"%@",memoStr];
+        [memoLabel6 sizeToFit];
+        float labelHeight6 = labelH;
+        if (memoLabel6.frame.size.height > labelH) {
+            labelHeight6 = memoLabel6.frame.size.height;
+        }
+        backGraundView6.frame = CGRectMake(backGraundView6.frame.origin.x, backGraundView6.frame.origin.y, backGraundView6.frame.size.width, backGraundView6.frame.size.height+labelHeight6);
+        //文字数で増えたぶんだけずらす
+        image6.transform = CGAffineTransformIdentity;
+        image6.transform = CGAffineTransformMakeTranslation(0, labelHeight6);
+        
+        nemeLabel6.transform = CGAffineTransformIdentity;
+        nemeLabel6.transform = CGAffineTransformMakeTranslation(0, labelHeight6);
+        
+        delBtn6.transform = CGAffineTransformIdentity;
+        delBtn6.transform = CGAffineTransformMakeTranslation(0, labelHeight6);
+        
+        timeLabel6.transform = CGAffineTransformIdentity;
+        timeLabel6.transform = CGAffineTransformMakeTranslation(0, labelHeight6);
+        
+        lordBtn6.transform = CGAffineTransformIdentity;
+        lordBtn6.transform = CGAffineTransformMakeTranslation(0, labelHeight6);
+        
+        indicator6.transform = CGAffineTransformIdentity;
+        indicator6.transform = CGAffineTransformMakeTranslation(0, labelHeight6);
+        
+        imageBtn6.transform = CGAffineTransformIdentity;
+        imageBtn6.transform = CGAffineTransformMakeTranslation(0, labelHeight6);
+        
+//        [indicator6 startAnimating];
+//        dispatch_queue_t q_global = dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0);
+//        dispatch_queue_t q_main = dispatch_get_main_queue();
+//        image6.image = nil;
+//        dispatch_async(q_global, ^{
+//            UIImage *image = [self getImage:[cellDic objectForKey:@"IMAGEURL"]];
+//            dispatch_async(q_main, ^{
+//                image6.image = image;
+//                [indicator6 stopAnimating];
+//            });
+//        });
+        nemeLabel6.text = [NSString stringWithFormat:@"%@",[cellDic objectForKey:@"WRITEUSERNAME"]];
+        timeLabel6.text = [NSString stringWithFormat:@"%@/%@/%@ %@:%@",[[cellDic objectForKey:@"WRITEDATE"] substringWithRange:NSMakeRange(0, 4)],[[cellDic objectForKey:@"WRITEDATE"] substringWithRange:NSMakeRange(4, 2)],[[cellDic objectForKey:@"WRITEDATE"] substringWithRange:NSMakeRange(6, 2)],[[cellDic objectForKey:@"WRITEDATE"] substringWithRange:NSMakeRange(8, 2)],[[cellDic objectForKey:@"WRITEDATE"] substringWithRange:NSMakeRange(10, 2)]];
+    }
+}
+- (void)scrollViewWillBeginDragging:(UIScrollView *)scrollView
+{
+    if ([timer isValid]) {
+        [timer invalidate];
+    }
+}
+
+- (void)scrollViewDidEndDecelerating:(UIScrollView *)scrollView
+{
+}
+
+- (void)scrollViewDidEndDragging:(UIScrollView *)scrollView willDecelerate:(BOOL)decelerate
+{
+    if (!decelerate) {
+    }
+}
+-(void)scrollViewDidScroll:(UIScrollView *)scrollView
+{
+    [self updateVisibleCells];
 }
 @end
