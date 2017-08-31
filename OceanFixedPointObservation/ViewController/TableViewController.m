@@ -603,8 +603,6 @@ BOOL tableDiaryBool;
                 //
                 //            } forObject:self];
                 [self.flex.flexGridSelectionChanged addHandler:^(XuniEventContainer<GridCellRangeEventArgs *> *eventContainer) {
-                    NSLog(@"%d",eventContainer.eventArgs.col);
-                    NSLog(@"%d",eventContainer.eventArgs.row);
                     NSDictionary *dic = [eventAry objectAtIndex:eventContainer.eventArgs.row];
                     switch (eventContainer.eventArgs.col) {
                         case 1:
@@ -677,7 +675,7 @@ BOOL tableDiaryBool;
             NSString *dayStr = [[diaryDic objectForKey:@"ASSAYDATE"] substringWithRange:NSMakeRange(6, 2)];
             NSString *timeStr = [[diaryDic objectForKey:@"ASSAYDATE"] substringWithRange:NSMakeRange(8, 2)];
             if([[monthStr substringWithRange:NSMakeRange(0, 1)]  isEqual: @"0"]){
-                monthStr = [dayStr substringWithRange:NSMakeRange(1, 1)];
+                monthStr = [monthStr substringWithRange:NSMakeRange(1, 1)];
             }
             if([[dayStr substringWithRange:NSMakeRange(0, 1)]  isEqual: @"0"]){
                 dayStr = [dayStr substringWithRange:NSMakeRange(1, 1)];

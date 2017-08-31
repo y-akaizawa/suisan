@@ -781,7 +781,7 @@ BOOL chartDiaryBool;
     
     int chartCount = chartNam;
     // Image annotation.
-    NSLog(@"chart.axesArray = %@",chart.axesArray);
+    NSLog(@"diaryDic = %@",diaryDic);
     //軸が少ないがそれよりグラフ数が多い場合の処理
     if (chart.axesArray.count == 2) {
         if (chartCount > 2) {
@@ -825,7 +825,7 @@ BOOL chartDiaryBool;
     NSString *dayStr = [[diaryDic objectForKey:@"ASSAYDATE"] substringWithRange:NSMakeRange(6, 2)];
     NSString *timeStr = [[diaryDic objectForKey:@"ASSAYDATE"] substringWithRange:NSMakeRange(8, 2)];
     if([[monthStr substringWithRange:NSMakeRange(0, 1)]  isEqual: @"0"]){
-        monthStr = [dayStr substringWithRange:NSMakeRange(1, 1)];
+        monthStr = [monthStr substringWithRange:NSMakeRange(1, 1)];
     }
     if([[dayStr substringWithRange:NSMakeRange(0, 1)]  isEqual: @"0"]){
         dayStr = [dayStr substringWithRange:NSMakeRange(1, 1)];
