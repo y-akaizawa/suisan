@@ -29,6 +29,7 @@ NSString *openTopicId = @"0";//もっと見る状態のtopicidを格納
 NSString *chatType = @"";//話題か返信かtopic or res
 NSString *topicId = @"";//返信時の返信対象のtopicid格納
 UIImage *cameraImage = nil;//撮影、アルバム選択時の画像を一時的に格納
+BOOL startCheck;//画面初期表示チェック(画面の読み込みに必要)
 
 - (void)viewDidLoad {
     [super viewDidLoad];
@@ -75,12 +76,16 @@ UIImage *cameraImage = nil;//撮影、アルバム選択時の画像を一時的
     self.adminNameLabel.text = [NSString stringWithFormat:@"管理人：%@",self.adminName];
     self.adminNameLabel.adjustsFontSizeToFitWidth = YES;
     self.adminNameLabel.minimumScaleFactor = 5.f/30.f;
-    [self getChatAry];
+    startCheck = NO;
+    
     [self refleshControlSetting];
 }
 -(void)viewDidAppear:(BOOL)animated{
     [super viewDidAppear:animated];
-    
+    if (startCheck == NO) {
+        [self getChatAry];
+        startCheck = YES;
+    }
 }
 
 - (void)didReceiveMemoryWarning {
@@ -92,6 +97,7 @@ UIImage *cameraImage = nil;//撮影、アルバム選択時の画像を一時的
     [self updateVisibleCells];
 }
 -(void)getChatAry{
+    NSLog(@"bbbbbbbbbbbbbb");
     [Common showSVProgressHUD:@""];
     //チャットデータ全収納用配列を作成、初期化
     [self.allChatAry removeAllObjects];
@@ -123,20 +129,23 @@ UIImage *cameraImage = nil;//撮影、アルバム選択時の画像を一時的
             }
             [self.chatTableView reloadData];
             [self updateVisibleCells];
-            timer = [NSTimer
-                     // タイマーイベントを発生させる感覚。「1.5」は 1.5秒 型は float
-                     scheduledTimerWithTimeInterval:1.0
-                     // 呼び出すメソッドの呼び出し先(selector) self はこのファイル(.m)
-                     target:self
-                     // 呼び出すメソッド名。「:」で自分自身(タイマーインスタンス)を渡す。
-                     // インスタンスを渡さない場合は、「timerInfo」
-                     selector:@selector(timerInfo:)
-                     // 呼び出すメソッド内で利用するデータが存在する場合は設定する。ない場合は「nil」
-                     userInfo:nil
-                     // 上記で設定した秒ごとにメソッドを呼び出す場合は、「YES」呼び出さない場合は「NO」
-                     repeats:YES
-                     ];
-            [timer isValid];
+            if (timer.valid == NO) {
+                timer = [NSTimer
+                         // タイマーイベントを発生させる感覚。「1.5」は 1.5秒 型は float
+                         scheduledTimerWithTimeInterval:1.0
+                         // 呼び出すメソッドの呼び出し先(selector) self はこのファイル(.m)
+                         target:self
+                         // 呼び出すメソッド名。「:」で自分自身(タイマーインスタンス)を渡す。
+                         // インスタンスを渡さない場合は、「timerInfo」
+                         selector:@selector(timerInfo:)
+                         // 呼び出すメソッド内で利用するデータが存在する場合は設定する。ない場合は「nil」
+                         userInfo:nil
+                         // 上記で設定した秒ごとにメソッドを呼び出す場合は、「YES」呼び出さない場合は「NO」
+                         repeats:YES
+                         ];
+                [timer isValid];
+            }
+            
             [Common dismissSVProgressHUD];
         });
     });
@@ -1968,6 +1977,8 @@ didFinishPickingMediaWithInfo:(NSDictionary *)info {
 }
 -(void)scrollViewDidScroll:(UIScrollView *)scrollView
 {
-    [self updateVisibleCells];
+    if (self.chatTableView.contentOffset.y > 0) {
+         [self updateVisibleCells];
+    }
 }
 @end
