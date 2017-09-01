@@ -35,7 +35,6 @@ NSString *threadName = @"";
     dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^{
         self.threadListAry = [PHPConnection getThreadList:@""];
         dispatch_async(dispatch_get_main_queue(), ^{
-            NSLog(@"self.threadListAry = %@",self.threadListAry);
             [self.self.RoomTableView reloadData];
             [Common dismissSVProgressHUD];
         });
@@ -78,9 +77,6 @@ NSString *threadName = @"";
     roomTitleView.clipsToBounds = YES;
     roomTitleView.layer.cornerRadius = 10.0f;
     NSDictionary *tDic = [self.threadListAry objectAtIndex:indexPath.row];
-    NSLog(@"tDic = %@",tDic);
-    
-    NSLog(@"tDic = %@",[tDic objectForKey:@"THREADNAME"]);
     roomTitleLabel.text = [NSString stringWithFormat:@"%@",[tDic objectForKey:@"THREADNAME"]];
     updateLabel.text = [NSString stringWithFormat:@"最終更新：　%@",[tDic objectForKey:@"LASTUPD"]];
     if ([[tDic objectForKey:@"COUNT"] intValue] > 0) {
@@ -100,9 +96,7 @@ NSString *threadName = @"";
     }
     BOOL is_exists = [Common checkErrorMessage:tDic];
     if (is_exists == YES) {
-        NSLog(@"is_exists = %@",@"YES");
     }else{
-        NSLog(@"is_exists = %@",@"NO");
     }
     
     [mailBtn addTarget:self action:@selector(mailSetting:event:) forControlEvents:UIControlEventTouchUpInside];
@@ -136,7 +130,6 @@ NSString *threadName = @"";
 }
 - (IBAction)addBtn:(id)sender{
     NSDictionary *checkThread = [PHPConnection chkThreadCount];
-    NSLog(@"checkThread = %@",checkThread);
     if ([Common checkErrorMessage:checkThread] == YES) {
         UIAlertController *alertController = [UIAlertController alertControllerWithTitle:@"エラー" message:[NSString stringWithFormat:@"%@",[checkThread objectForKey:@"ERRORMESSAGE"]] preferredStyle:UIAlertControllerStyleAlert];
         
@@ -151,13 +144,11 @@ NSString *threadName = @"";
         [alert addAction:[UIAlertAction actionWithTitle:@"作成"
                                                   style:UIAlertActionStyleDefault
                                                 handler:^(UIAlertAction *action) {
-                                                    NSLog(@"OK");
                                                     [self addThread];
                                                 }]];
         [alert addAction:[UIAlertAction actionWithTitle:@"キャンセル"
                                                   style:UIAlertActionStyleCancel
                                                 handler:^(UIAlertAction *action) {
-                                                    NSLog(@"Cancel");
                                                     
                                                 }]];
         
@@ -171,14 +162,11 @@ NSString *threadName = @"";
 }
 - (void)textFieldDidEndEditing:(UITextField *)textField
 {
-    NSLog(@"%@",textField.text);
     threadName = textField.text;
     
 }
 -(void)addThread{
-    NSLog(@"threadName = %@",threadName);
     NSDictionary *dic = [PHPConnection addThread:threadName];
-    NSLog(@"dic＝%@",dic);
     if ([Common checkErrorMessage:dic] == YES) {
         UIAlertController *alertController = [UIAlertController alertControllerWithTitle:@"エラー" message:[NSString stringWithFormat:@"%@",[dic objectForKey:@"ERRORMESSAGE"]] preferredStyle:UIAlertControllerStyleAlert];
         

@@ -23,7 +23,6 @@ NSMutableArray *areaCDAry;
     self.areaTableView.delegate = self;
     self.areaTableView.dataSource = self;
     allAreaAry = [PHPConnection getDatasetList2:0];
-    NSLog(@"areaDateAry = %@",allAreaAry);
 }
 
 - (void)didReceiveMemoryWarning {
@@ -322,7 +321,6 @@ NSMutableArray *areaCDAry;
     [userDataDic setObject:[NSString stringWithFormat:@"%@",DataSetCD40] forKey:@"DataSetCD40"];
     [ud setObject:userDataDic forKey:@"UserData_Key"];
     [ud synchronize];
-    NSLog(@"UserData_Key = %@",[ud objectForKey:@"UserData_Key"]);
     [self dismissViewControllerAnimated:YES completion:nil];
 }
 

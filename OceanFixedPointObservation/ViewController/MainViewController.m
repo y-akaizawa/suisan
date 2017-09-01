@@ -2514,7 +2514,6 @@ NSMutableArray *userDataAry;//ユーザーデータ格納及び表、グラフ�
 
 -(void)goList:(int)pageCn{
     int page = pageCn+(PanelPageCount*4);
-    NSLog(@"page = %d",page);
     areaListViewController = [self.storyboard instantiateViewControllerWithIdentifier:@"AreaListViewController"];
     areaListViewController.areaPanelNo = page;
     areaListViewController.modalTransitionStyle = UIModalTransitionStyleCrossDissolve;

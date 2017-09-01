@@ -34,9 +34,7 @@
     if ([[userDataDic objectForKey:@"UserId"]  isEqual: @""]) {
     }else{
         userId = [userDataDic objectForKey:@"UserId"];
-    }
-    NSLog(@"userId = %@",userId);
-    self.emailTextField.placeholder = @"メールアドレスを入力してください。";
+    }    self.emailTextField.placeholder = @"メールアドレスを入力してください。";
     if (self.mailaddrStr.length > 0) {
         addrSetBOOL = YES;
         self.emailTextField.text = self.mailaddrStr;
@@ -298,7 +296,6 @@
         [self presentViewController:alertController animated:YES completion:nil];
     }else{
         NSDictionary *mailDic;
-        NSLog(@"時間 = %@ = %@",[NSString stringWithFormat:@"%@%@",self.timeStr1,self.timeStr2],[NSString stringWithFormat:@"%@%@",self.timeStr3,self.timeStr4]);
         if (mailSwBOOL == NO) {
             //新規メールアドレス登録と更新
             mailDic = [PHPConnection addMailAddress:self.emailTextField.text from:[NSString stringWithFormat:@""] to:[NSString stringWithFormat:@""]];
@@ -306,7 +303,6 @@
             //新規メールアドレス登録と更新
             mailDic = [PHPConnection addMailAddress:self.emailTextField.text from:[NSString stringWithFormat:@"%@%@",self.timeStr1,self.timeStr2] to:[NSString stringWithFormat:@"%@%@",self.timeStr3,self.timeStr4]];
         }
-        NSLog(@"mailDic = %@",mailDic);
         if ([[mailDic objectForKey:@"STATUS"]  isEqual: @"0"]) {
             [self dismissViewControllerAnimated:YES completion:nil];
         }else{
@@ -319,48 +315,6 @@
             }]];
             [self presentViewController:alertController animated:YES completion:nil];
         }
-        
-        
-        
-        
-//        if ([Common isValidateEmail:self.emailTextField.text] == NO) {
-//            UIAlertController *alertController = [UIAlertController alertControllerWithTitle:@"入力エラー" message:@"メールアドレスが不正です。" preferredStyle:UIAlertControllerStyleAlert];
-//            // addActionした順に左から右にボタンが配置されます
-//            [alertController addAction:[UIAlertAction actionWithTitle:@"確認" style:UIAlertActionStyleDefault handler:^(UIAlertAction *action) {
-//                // otherボタンが押された時の処理
-//                [self cancel:alertController];
-//            }]];
-//            [self presentViewController:alertController animated:YES completion:nil];
-//        }else{
-        
-            
-//            //すでにアドレスとユーザーIDが登録されているかどうか。
-//            if (addrSetBOOL == NO) {
-//                NSUserDefaults *ud = [NSUserDefaults standardUserDefaults];
-//                NSMutableDictionary *userDataDic = [[ud objectForKey:@"UserData_Key"] mutableCopy];
-//                [userDataDic setObject:[NSString stringWithFormat:@"%@",userId] forKey:@"UserId"];
-//                [ud setObject:userDataDic forKey:@"UserData_Key"];
-//                BOOL successful = [ud synchronize];
-//                NSLog(@"successful = %d",successful);
-//                if (mailSwBOOL == NO) {
-//                    //[PHPConnection mailadd:userId mailAddr:self.emailTextField.text armtimeFrom:@"null" armtimeTo:@"null"];
-//                    [PHPConnection mailadd:userId mailAddr:self.emailTextField.text armtimeFrom:nil armtimeTo:nil];
-//                }else{
-//                    [PHPConnection mailadd:userId mailAddr:self.emailTextField.text armtimeFrom:[NSString stringWithFormat:@"%@%@",self.timeStr1,self.timeStr2] armtimeTo:[NSString stringWithFormat:@"%@%@",self.timeStr3,self.timeStr4]];
-//                }
-//                
-//                [self dismissViewControllerAnimated:YES completion:nil];
-//            }else{
-//                if (mailSwBOOL == NO) {
-//                    //[PHPConnection mailSet:userId mailAddr:self.emailTextField.text armtimeFrom:@"null" armtimeTo:@"null"];
-//                    [PHPConnection mailSet:userId mailAddr:self.emailTextField.text armtimeFrom:nil armtimeTo:nil];
-//                }else{
-//                    [PHPConnection mailSet:userId mailAddr:self.emailTextField.text armtimeFrom:[NSString stringWithFormat:@"%@%@",self.timeStr1,self.timeStr2] armtimeTo:[NSString stringWithFormat:@"%@%@",self.timeStr3,self.timeStr4]];
-//                }
-//                [self dismissViewControllerAnimated:YES completion:nil];
-//                
-//            }
-//        }
     }
 }
 - (void)other:(UIAlertController *)alertview{
@@ -371,7 +325,6 @@
         [userDataDic setObject:@"0" forKey:@"UserId"];
         [ud setObject:userDataDic forKey:@"UserData_Key"];
         BOOL successful = [ud synchronize];
-        NSLog(@"successful = %d",successful);
         [self dismissViewControllerAnimated:YES completion:nil];
     }
 }
@@ -380,18 +333,4 @@
         [self dismissViewControllerAnimated:YES completion:nil];
     }
 }
-//- (IBAction)deleteBtn:(id)sender {
-//    UIAlertController *alertController = [UIAlertController alertControllerWithTitle:@"登録データの削除" message:@"Eメールアドレス、メール受信拒否時間を始め、アラーム設定、積算値設定を含む全ての登録データが削除されます。\nよろしいですか？" preferredStyle:UIAlertControllerStyleAlert];
-//    alertController.view.tag = 2;
-//    // addActionした順に左から右にボタンが配置されます
-//    [alertController addAction:[UIAlertAction actionWithTitle:@"削除" style:UIAlertActionStyleDefault handler:^(UIAlertAction *action) {
-//        // otherボタンが押された時の処理
-//        [self other:alertController];
-//    }]];
-//    [alertController addAction:[UIAlertAction actionWithTitle:@"いいえ" style:UIAlertActionStyleDefault handler:^(UIAlertAction *action) {
-//        // cancelボタンが押された時の処理
-//        [self cancel:alertController];
-//    }]];
-//    [self presentViewController:alertController animated:YES completion:nil];
-//}
 @end

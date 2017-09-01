@@ -111,7 +111,6 @@ NSMutableArray *tAry;//招待できるユーザー一覧と招待状態
 }
 - (void)otherButtonPushed{
     NSDictionary *delDic = [PHPConnection delThread:self.threadid];
-    NSLog(@"delDic = %@",delDic);
     [self dismissViewControllerAnimated:YES completion:nil];
 }
 @end

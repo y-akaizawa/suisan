@@ -101,7 +101,6 @@ BOOL tableDiaryBool;
     [formatter setTimeZone:[NSTimeZone timeZoneWithAbbreviation:@"JST"]];
     [formatter setDateFormat:@"yyyyMMdd"];
     NSString *outputDateStr = [formatter stringFromDate:todey];
-    NSLog(@"%@",outputDateStr);
     startDataStr = outputDateStr;
     [self setTable:@"0"];
     self.CalendarBaseView.hidden = YES;
@@ -398,7 +397,6 @@ BOOL tableDiaryBool;
         NSMutableArray *ary = [PHPConnection getTableData14_2:aDataSetCD dataSetCD2:bDataSetCD dataSetCD3:cDataSetCD dataSetCD4:dDataSetCD targetDate:datastr targetDateflg:tdflg];
         
         dispatch_async(dispatch_get_main_queue(), ^{
-            NSLog(@"eventAry = %@",eventAry);
             self.flex.columnHeaderBackgroundColor = [UIColor blueColor];
             self.flex.columnHeaderTextColor = [UIColor whiteColor];
             
@@ -591,17 +589,6 @@ BOOL tableDiaryBool;
                     eventContainer.eventArgs.cancel = false;
                     
                 } forObject:self];
-                
-                
-                //            [self.flex.flexGridSelectionChanged addHandler:^(NSObject *sender, XuniEventArgs *args) {
-                //                int i1 = blockself.flex.selection.topRow;
-                //                int i2 = blockself.flex.selection.leftCol;
-                //                NSString *str1 = [NSString stringWithFormat:@"%@",[blockself.flex getCellDataForRow:i1 inColumn:0 formatted:YES]];
-                //                NSString *str2 = [NSString stringWithFormat:@"%@",[blockself.flex getCellDataForRow:i1 inColumn:i2 formatted:YES]];
-                //                NSLog(@"row = %d, col = %d",i1,i2);
-                //                NSLog(@"%@, %@",str1,str2);
-                //
-                //            } forObject:self];
                 [self.flex.flexGridSelectionChanged addHandler:^(XuniEventContainer<GridCellRangeEventArgs *> *eventContainer) {
                     NSDictionary *dic = [eventAry objectAtIndex:eventContainer.eventArgs.row];
                     switch (eventContainer.eventArgs.col) {
@@ -617,7 +604,6 @@ BOOL tableDiaryBool;
                             break;
                         case 3:
                             if ([dic objectForKey:@"EVENTID3"] != [NSNull null]) {
-                                NSLog(@"EVENTID3 = %@",[dic objectForKey:@"EVENTID3"] );
                                 [self diaryAlartSet:[dic objectForKey:@"EVENTID3"]];
                             }
                             break;

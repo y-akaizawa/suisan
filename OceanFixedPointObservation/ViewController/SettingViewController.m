@@ -84,7 +84,6 @@ NSMutableDictionary *settingDic;
                                                [[settingDic objectForKey:@"REFUSEMAILTO"] substringWithRange:NSMakeRange(2, 2)]];
                     }
                 }
-//                NSLog(@"settingAry = %@",settingAry);
                 //アラーム設定1
                 if ([settingDic objectForKey:@"ARM1AREANM"] == [NSNull null] || settingAry.count == 0) {
                     self.alarmSwitch1.on = NO;
@@ -334,7 +333,6 @@ NSMutableDictionary *settingDic;
         alarmSwitchOn = @"2";
     }
     NSDictionary *updAlarmSwitch = [PHPConnection updAlarmSwitch:alarmSwitchNo status:alarmSwitchOn];
-    NSLog(@"updAlarmSwitch = %@",updAlarmSwitch);
 }
 //積算設定ボタン tagが上から21 22 23
 - (IBAction)sekisanSettingBtn:(UIButton *)sender {
@@ -386,7 +384,6 @@ NSMutableDictionary *settingDic;
 //テキストフィールドデリゲート
 - (void)textFieldDidEndEditing:(UITextField *)textField
 {
-    NSLog(@"%@",textField.text);
     
 }
 -(void)touchesBegan:(NSSet *)touches withEvent:(UIEvent *)event {
@@ -407,7 +404,6 @@ NSMutableDictionary *settingDic;
         //ニックネーム変更
         NSDictionary *userNameDic = [PHPConnection updNickname:self.diaLogTextField.text];
         if ([Common checkErrorMessage:userNameDic] == YES) {
-            NSLog(@"is_exists = %@",@"YES");
             UIAlertController *alertController = [UIAlertController alertControllerWithTitle:@"エラー" message:[NSString stringWithFormat:@"%@",[userNameDic objectForKey:@"ERRORMESSAGE"]] preferredStyle:UIAlertControllerStyleAlert];
             
             [alertController addAction:[UIAlertAction actionWithTitle:@"OK" style:UIAlertActionStyleDefault handler:^(UIAlertAction *action) {
@@ -416,7 +412,6 @@ NSMutableDictionary *settingDic;
             
             [self presentViewController:alertController animated:YES completion:nil];
         }else{
-            NSLog(@"is_exists = %@",@"NO");
             self.userNameLabel.text = self.diaLogTextField.text;
             [self.diaLogTextField resignFirstResponder];
             self.dialogBaseView.hidden = YES;

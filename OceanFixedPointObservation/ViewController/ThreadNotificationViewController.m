@@ -18,7 +18,6 @@
     [super viewDidLoad];
     self.threadNameLabel.text = self.threadName;
     NSDictionary *getThreadMailDic = [PHPConnection getThreadMail:self.threadid];
-    NSLog(@"aaaaaa = %@",getThreadMailDic);
     self.topSwitch.on = NO;
     if ([[getThreadMailDic objectForKey:@"NOTIFICATION"]  isEqual: @"0"]) {
         self.mailSwitch.on = NO;
@@ -27,7 +26,6 @@
     }
     NSUserDefaults *ud = [NSUserDefaults standardUserDefaults];
     NSMutableArray *ary = [[ud objectForKey:@"NewNotification_Key"] mutableCopy];
-    NSLog(@"ary = %@",ary);
     if ([ary containsObject:self.threadid]) {
         self.topSwitch.on = YES;
     }else{
@@ -50,19 +48,14 @@
     }else{
         [ary removeObject:self.threadid];
     }
-    NSLog(@"aaa = %@",ary);
     [ud setObject:ary forKey:@"NewNotification_Key"];
     [ud synchronize];
 }
 - (IBAction)mailSwitch:(id)sender {
     if (self.mailSwitch.on) {
         NSDictionary *dic = [PHPConnection updThreadMail:self.threadid status:@"1"];
-        NSLog(@"dicON = %@",dic);
-        NSLog(@"dicON = %@",[dic objectForKey:@"ERRORMESSAGE"]);
     }else{
         NSDictionary *dic = [PHPConnection updThreadMail:self.threadid status:@"2"];
-        NSLog(@"dicOFF = %@",dic);
-        NSLog(@"dicOFF = %@",[dic objectForKey:@"ERRORMESSAGE"]);
     }
 }
 @end

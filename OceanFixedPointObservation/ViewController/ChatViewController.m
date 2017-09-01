@@ -300,8 +300,6 @@ BOOL startCheck;//画面初期表示チェック(画面の読み込みに必要)
     cell6.selectionStyle = UITableViewCellSelectionStyleNone;
     //リストの配列番号取得
     //allTopicListAryからリストの配列番号の要素をNSDictionaryで取り出す
-    NSLog(@"self.allChatAry = %ld",(long)self.allChatAry.count);
-    NSLog(@"indexPath.row = %ld",(long)indexPath.row);
     NSDictionary *cellDic;
     if (self.allChatAry.count == 0) {
         cellDic = nil;
@@ -1012,12 +1010,10 @@ BOOL startCheck;//画面初期表示チェック(画面の読み込みに必要)
                             delBtn3.hidden = YES;
                         }
                         int cellResCount = [[cellDic objectForKey:@"RESCOUNT"] intValue];
-                        NSLog(@"%d",cellResCount);
                         if (cellResCount > indexPath.row) {
                             
                         }else{
                             NSDictionary *dic = [self.allChatAry objectAtIndex:indexPath.row - cellResCount];
-                            NSLog(@"dic111 = %@    %ld",dic,(long)indexPath.row);
                             if([dic.allKeys containsObject:@"TOPICID"]){
                                 if ([[cellDic objectForKey:@"RESCOUNT"]  isEqual: [dic objectForKey:@"RESCOUNT"]]) {
                                     [Common viewRoundedRect:backGraundView3 direction:2];
@@ -1205,7 +1201,6 @@ didFinishPickingMediaWithInfo:(NSDictionary *)info {
 - (IBAction)okBtn:(id)sender {
     if (cameraImage == nil) {
         NSDictionary *addTopicResDic = [PHPConnection addTopicRes:self.threadId type:chatType topicid:topicId memo:self.dialogTextView.text imageurl:@""];
-        NSLog(@"addTopicResDic = %@",addTopicResDic);
     }else{
         [self imagePostData:cameraImage type:chatType topicId:topicId memo:self.dialogTextView.text];
     }
@@ -1260,7 +1255,6 @@ didFinishPickingMediaWithInfo:(NSDictionary *)info {
     });
 }
 - (void) handleTapGesture:(UITapGestureRecognizer*)sender {
-    NSLog(@"tap");
     UIView *view = (UIView *)[self.view viewWithTag:imageTapTag];
     [view removeFromSuperview];
 }
@@ -1275,7 +1269,6 @@ didFinishPickingMediaWithInfo:(NSDictionary *)info {
 - (void) handlePinchGesture:(UIPinchGestureRecognizer*) sender {
     UIPinchGestureRecognizer* pinch = (UIPinchGestureRecognizer*)sender;
     UIImageView *imageView = (UIImageView *)[self.view viewWithTag:imageTag];
-    NSLog(@"pinch scale=%f, velocity=%f", pinch.scale, pinch.velocity);
     // 新しく適用するスケールを計算する (適用されているスケール x 新しくピンチしたスケール)
     effectiveScale = beginGestureScale * pinch.scale;
     // スケールをビューに適用する
@@ -1289,7 +1282,6 @@ didFinishPickingMediaWithInfo:(NSDictionary *)info {
     UIPanGestureRecognizer* pan = (UIPanGestureRecognizer*) sender;
     UIImageView *imageView = (UIImageView *)[self.view viewWithTag:imageTag];
     CGPoint location = [pan translationInView:self.view];
-    NSLog(@"pan x=%f, y=%f", location.x, location.y);
     imageX = location.x;
     imageY = location.y;
     CGAffineTransform t1 = CGAffineTransformMakeTranslation(imageX, imageY);
@@ -1300,8 +1292,6 @@ didFinishPickingMediaWithInfo:(NSDictionary *)info {
 //もっと見るボタン
 - (void)lordButton:(UIButton *)sender event:(UIEvent *)event {
     NSIndexPath *indexPath = [self indexPathForControlEvent:event];
-    NSLog(@"section:%ld",(long)indexPath.section);
-    NSLog(@"row:%ld",(long)indexPath.row);
     //もっと見るは３個目の返信のため３個前の話題データを取得しtopicidを取得する
     NSDictionary *cellDic = [self.allChatAry objectAtIndex:indexPath.row-3];
     //rescount取得して話題を取得しtopicidを取得する
@@ -1428,7 +1418,6 @@ didFinishPickingMediaWithInfo:(NSDictionary *)info {
 }
 - (IBAction)allUserBtn:(id)sender {
     NSMutableArray *ary = [PHPConnection getThreadMember:self.threadId manageid:self.manageId];
-    NSLog(@"メンバー = %@",ary);
     NSMutableString *mStr = [NSMutableString string];
     if ([self.manageId  isEqual: @"0"]) {
         [mStr appendString:@"グループメンバー全て"];
@@ -1526,11 +1515,8 @@ didFinishPickingMediaWithInfo:(NSDictionary *)info {
         // レスポンスが成功か失敗かを見てそれぞれ処理を行う
         if (response && ! error) {
             NSString *responseString = [[NSString alloc] initWithData: data  encoding: NSUTF8StringEncoding];
-            NSLog(@"成功: %@", responseString);
             NSDictionary* dic = [NSJSONSerialization JSONObjectWithData:[responseString dataUsingEncoding:NSUTF8StringEncoding] options:NSJSONReadingAllowFragments error:nil];
             if ([Common checkErrorMessage:dic] == YES) {
-                NSLog(@"is_exists = %@",@"YES");
-                NSLog(@"%@", [dic objectForKey:@"ERRORMESSAGE"]);
                 UIAlertController *alertController = [UIAlertController alertControllerWithTitle:@"エラー" message:[NSString stringWithFormat:@"%@",[dic objectForKey:@"ERRORMESSAGE"]] preferredStyle:UIAlertControllerStyleAlert];
                 
                 [alertController addAction:[UIAlertAction actionWithTitle:@"OK" style:UIAlertActionStyleDefault handler:^(UIAlertAction *action) {
@@ -1539,13 +1525,11 @@ didFinishPickingMediaWithInfo:(NSDictionary *)info {
                 
                 [self presentViewController:alertController animated:YES completion:nil];
             }else{
-                NSLog(@"is_exists = %@",@"NO");
                 [self getChatAry];
             }
             cameraImage = nil;
         }
         else {
-            NSLog(@"失敗: %@", error);
         }
         
     }] resume];

@@ -103,8 +103,6 @@ NSString *dataSetStr;//選択されているデータセットコード格納
     
     cdAry = [[NSMutableArray alloc] initWithCapacity:0];
     cdAry = [GetArrayObject allAreaCDData];
-    NSLog(@"datasetcdAry = %@",cdAry);
-    NSLog(@"sekisanAry = %@",self.sekisanAry);
     [self setComboBox];
     [self setCalendarView];
 }
@@ -197,7 +195,6 @@ NSString *dataSetStr;//選択されているデータセットコード格納
     [formatter setTimeZone:[NSTimeZone timeZoneWithAbbreviation:@"JST"]];
     [formatter setDateFormat:@"yyyyMMdd"];
     NSString *outputDateStr = [formatter stringFromDate:todey];
-    NSLog(@"%@",outputDateStr);
     if (fromToCount == 1) {
         [self.timeFromBtn setTitle:[NSString stringWithFormat:@"%@年　%@月　%@日",[outputDateStr substringWithRange:NSMakeRange(0, 4)],[outputDateStr substringWithRange:NSMakeRange(4, 2)],[outputDateStr substringWithRange:NSMakeRange(6, 2)]] forState:UIControlStateNormal];
         fromStr = outputDateStr;
@@ -365,9 +362,7 @@ numberOfRowsInComponent:(NSInteger)component{
 }
 
 - (void)isDropDownOpenChanging:(XuniDropDown *)sender args:(XuniDropDownOpenChangingEventArgs *)args{
-    NSLog(@"isDropDownOpenChanged = %lu",(unsigned long)self.comboBoxPlace.selectedIndex);
     NSMutableArray *ary = [PHPConnection getPanelDetail:[cdAry objectAtIndex:self.comboBoxPlace.selectedIndex]];
-    NSLog(@"222ary = %@",ary);
     NSDictionary *dic = [ary objectAtIndex:0];
     NSString *unitStr = [dic objectForKey:@"UNIT"];
     self.unitLabel1.text = unitStr;
@@ -419,9 +414,7 @@ numberOfRowsInComponent:(NSInteger)component{
             datasetcd = dataSetStr;
         }
         NSDictionary *sekisanDic = [PHPConnection updSekisanSetting:self.sekisanCountStr datasetcd:datasetcd from:[fromStr substringWithRange:NSMakeRange(0, 8)] to:[toStr substringWithRange:NSMakeRange(0, 8)] base:self.referenceTextField.text std:self.criterionTextField.text];
-        NSLog(@"sekisanDic = %@",sekisanDic);
         if ([Common checkErrorMessage:sekisanDic] == YES) {
-            NSLog(@"is_exists = %@",@"YES");
             UIAlertController *alertController = [UIAlertController alertControllerWithTitle:@"エラー" message:[NSString stringWithFormat:@"%@",[sekisanDic objectForKey:@"ERRORMESSAGE"]] preferredStyle:UIAlertControllerStyleAlert];
             
             [alertController addAction:[UIAlertAction actionWithTitle:@"OK" style:UIAlertActionStyleDefault handler:^(UIAlertAction *action) {
@@ -430,7 +423,6 @@ numberOfRowsInComponent:(NSInteger)component{
             
             [self presentViewController:alertController animated:YES completion:nil];
         }else{
-            NSLog(@"is_exists = %@",@"NO");
             [self dismissViewControllerAnimated:YES completion:nil];
         }
     }
@@ -453,7 +445,6 @@ numberOfRowsInComponent:(NSInteger)component{
             datasetcd = dataSetStr;
         }
         NSDictionary *sekisanDic = [PHPConnection updSekisanSetting:self.sekisanCountStr datasetcd:datasetcd from:[fromStr substringWithRange:NSMakeRange(0, 8)] to:[toStr substringWithRange:NSMakeRange(0, 8)] base:self.referenceTextField.text std:self.criterionTextField.text];
-        NSLog(@"sekisanDic = %@",sekisanDic);
         
         NSMutableArray *previewDataAry = [[NSMutableArray alloc] initWithCapacity:0];
         previewDataAry = [PHPConnection getSekisanPreviewData:datasetcd targetdate:[Common getTimeString] datefrom:fromStr dateto:toStr base:self.referenceTextField.text std:self.criterionTextField.text];
@@ -565,7 +556,6 @@ numberOfRowsInComponent:(NSInteger)component{
 - (void)other:(UIAlertController *)alertview{
     NSDictionary *delDic = [PHPConnection delSekisanSetting:self.sekisanCountStr];
     if ([Common checkErrorMessage:delDic] == YES) {
-        NSLog(@"is_exists = %@",@"YES");
         UIAlertController *alertController = [UIAlertController alertControllerWithTitle:@"エラー" message:[NSString stringWithFormat:@"%@",[delDic objectForKey:@"ERRORMESSAGE"]] preferredStyle:UIAlertControllerStyleAlert];
         
         [alertController addAction:[UIAlertAction actionWithTitle:@"OK" style:UIAlertActionStyleDefault handler:^(UIAlertAction *action) {
@@ -573,7 +563,6 @@ numberOfRowsInComponent:(NSInteger)component{
         }]];
         [self presentViewController:alertController animated:YES completion:nil];
     }else{
-        NSLog(@"is_exists = %@",@"NO");
         [self dismissViewControllerAnimated:YES completion:nil];
     }
 }

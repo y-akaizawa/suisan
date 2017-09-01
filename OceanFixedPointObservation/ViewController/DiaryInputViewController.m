@@ -30,7 +30,6 @@ NSMutableArray *datasetcdAry;
     datasetcdAry = [[NSMutableArray alloc] initWithCapacity:0];
     datasetcdAry = [GetArrayObject allAreaCDData];
     [datasetcdAry insertObject:@"0" atIndex:0];
-    NSLog(@"datasetcdAry = %@",datasetcdAry);
 
     if (self.diaryFlag == 0) {
         targetdate = [Common getTimeString];

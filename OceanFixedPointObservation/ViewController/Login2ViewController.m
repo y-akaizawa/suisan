@@ -37,34 +37,6 @@
     self.groupId3.tag =108;
     self.groupId4.tag =109;
     
-//    self.userId1.text = @"44S1";
-//    self.userId2.text = @"BAaO";
-//    self.userId3.text = @"L6uh";
-//    self.userId4.text = @"Psmb";
-//    self.userId5.text = @"zLHX";
-//    
-//    self.groupId1.text = @"0H5Y";
-//    self.groupId2.text = @"XDH3";
-//    self.groupId3.text = @"1U0A";
-//    self.groupId4.text = @"YB77";
-    //ユーザー１
-//    self.userId1.text = @"g5Uf";
-//    self.userId2.text = @"9Glu";
-//    self.userId3.text = @"N2ZP";
-//    self.userId4.text = @"TV0C";
-//    self.userId5.text = @"mdmE";
-    //ユーザー2
-//    self.userId1.text = @"fxnI";
-//    self.userId2.text = @"0MDm";
-//    self.userId3.text = @"f896";
-//    self.userId4.text = @"jXjQ";
-//    self.userId5.text = @"pIXx";
-    //４
-//    self.groupId1.text = @"8RK9";
-//    self.groupId2.text = @"EEVJ";
-//    self.groupId3.text = @"HAT3";
-//    self.groupId4.text = @"EEE8";
-    
 }
 
 - (void)didReceiveMemoryWarning {
@@ -127,7 +99,6 @@
     dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^{
         NSDictionary *loginDic = [PHPConnection inheritance:groupId userId:userId];
         dispatch_async(dispatch_get_main_queue(), ^{
-            NSLog(@"%@",loginDic);
             if ([Common checkErrorMessage:loginDic] == YES) {
                 UIAlertController *alertController = [UIAlertController alertControllerWithTitle:@"エラー" message:[NSString stringWithFormat:@"%@",[loginDic objectForKey:@"ERRORMESSAGE"]] preferredStyle:UIAlertControllerStyleAlert];
                 

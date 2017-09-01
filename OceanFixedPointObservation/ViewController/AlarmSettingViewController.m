@@ -29,8 +29,6 @@ NSMutableArray *dAry;
     pkSelectPlaceDateAry = [GetArrayObject allAreaCDData];
     dAry = [[NSMutableArray alloc] initWithCapacity:0];
     dAry = [GetArrayObject allAreaCDData];
-    NSLog(@"datasetcdAry = %@",dAry);
-    NSLog(@"---%@---",self.alarmAry);
     if (self.alarmAry.count > 0) {
         alarmDic = [self.alarmAry objectAtIndex:0];
     }
@@ -232,7 +230,6 @@ numberOfRowsInComponent:(NSInteger)component{
 }
 
 - (void)isDropDownOpenChanging:(XuniDropDown *)sender args:(XuniDropDownOpenChangingEventArgs *)args{
-    NSLog(@"isDropDownOpenChanged = %lu",(unsigned long)self.comboBoxPlace.selectedIndex);
     NSMutableArray *ary = [PHPConnection getPanelDetail:[dAry objectAtIndex:self.comboBoxPlace.selectedIndex]];
     NSDictionary *dic = [ary objectAtIndex:0];
     NSString *unitStr = @"";
@@ -249,7 +246,6 @@ numberOfRowsInComponent:(NSInteger)component{
 {
     NSInteger selectedRow = [pickerView selectedRowInComponent:0];
     pkCount = (int)selectedRow;
-    NSLog(@"%ld", (long)selectedRow);
 }
 - (void)pickerOKBtn{
     [UIView transitionWithView:self.pickerBaseView
@@ -294,10 +290,7 @@ numberOfRowsInComponent:(NSInteger)component{
             datasetcd = dataStr;
         }
         NSDictionary *dic = [PHPConnection updAlarmSetting:self.alarmCountStr datasetcd:datasetcd from:self.rangeTextField1.text to:self.rangeTextField2.text];
-        NSLog(@"dic = %@",dic);
-        //BOOL is_exists = [Common checkErrorMessage:dic];
         if ([Common checkErrorMessage:dic] == YES) {
-            NSLog(@"is_exists = %@",@"YES");
             UIAlertController *alertController = [UIAlertController alertControllerWithTitle:@"エラー" message:[NSString stringWithFormat:@"%@",[dic objectForKey:@"ERRORMESSAGE"]] preferredStyle:UIAlertControllerStyleAlert];
             
             [alertController addAction:[UIAlertAction actionWithTitle:@"OK" style:UIAlertActionStyleDefault handler:^(UIAlertAction *action) {
@@ -306,7 +299,6 @@ numberOfRowsInComponent:(NSInteger)component{
             
             [self presentViewController:alertController animated:YES completion:nil];
         }else{
-            NSLog(@"is_exists = %@",@"NO");
             [self dismissViewControllerAnimated:YES completion:nil];
         }
     }
@@ -332,7 +324,6 @@ numberOfRowsInComponent:(NSInteger)component{
 - (void)other:(UIAlertController *)alertview{
     NSDictionary *delDic = [PHPConnection delAlarmSetting:self.alarmCountStr];
     if ([Common checkErrorMessage:delDic] == YES) {
-        NSLog(@"is_exists = %@",@"YES");
         UIAlertController *alertController = [UIAlertController alertControllerWithTitle:@"エラー" message:[NSString stringWithFormat:@"%@",[delDic objectForKey:@"ERRORMESSAGE"]] preferredStyle:UIAlertControllerStyleAlert];
         
         [alertController addAction:[UIAlertAction actionWithTitle:@"OK" style:UIAlertActionStyleDefault handler:^(UIAlertAction *action) {
@@ -340,7 +331,6 @@ numberOfRowsInComponent:(NSInteger)component{
         }]];
         [self presentViewController:alertController animated:YES completion:nil];
     }else{
-        NSLog(@"is_exists = %@",@"NO");
         [self dismissViewControllerAnimated:YES completion:nil];
     }
 }

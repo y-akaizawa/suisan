@@ -27,10 +27,6 @@
     self.groupId2.tag = 102;
     self.groupId3.tag = 103;
     self.groupId4.tag = 104;
-//    self.groupId1.text = @"8RK9";
-//    self.groupId2.text = @"EEVJ";
-//    self.groupId3.text = @"HAT3";
-//    self.groupId4.text = @"EEE8";
     [self.closeBtn setTitle:@"お問い合わせ" forState:UIControlStateNormal];
 }
 
@@ -57,13 +53,11 @@
                 [userDataDic setObject:[loginDic objectForKey:@"GROUPID"] forKey:@"GroupId"];
                 [ud setObject:userDataDic forKey:@"UserData_Key"];
                 [ud synchronize];
-                NSLog(@"UserData_Key = %@",[ud objectForKey:@"UserData_Key"]);
                 
                 MainViewController *mainViewController = [self.storyboard instantiateViewControllerWithIdentifier:@"MainViewController"];
                 mainViewController.modalTransitionStyle = UIModalTransitionStyleCrossDissolve;
                 [self presentViewController:mainViewController animated:YES completion:nil];
             }else{
-                NSLog(@"ERRORMESSAGE = %@",[loginDic objectForKey:@"ERRORMESSAGE"]);
                 UIAlertController *alertController = [UIAlertController alertControllerWithTitle:@"エラー" message:[NSString stringWithFormat:@"%@",[loginDic objectForKey:@"ERRORMESSAGE"]] preferredStyle:UIAlertControllerStyleAlert];
                 [alertController addAction:[UIAlertAction actionWithTitle:@"OK" style:UIAlertActionStyleDefault handler:^(UIAlertAction *action) {
                     // cancelボタンが押された時の処理

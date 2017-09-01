@@ -173,7 +173,6 @@ BOOL chartDiaryBool;
     [formatter setTimeZone:[NSTimeZone timeZoneWithAbbreviation:@"JST"]];
     [formatter setDateFormat:@"yyyyMMdd"];
     NSString *outputDateStr = [formatter stringFromDate:todey];
-    NSLog(@"%@",outputDateStr);
     sDataStr = outputDateStr;
     [self setChartView:@"0" heikin:[pickerSelectHeikinDateAry objectAtIndex:heikinSelectInt]];
     self.CalendarBaseView.hidden = YES;
@@ -439,8 +438,6 @@ BOOL chartDiaryBool;
                             for(int i2 = 0; i2 < eventAry1.count; i2++){
                                 if (i == [[eventAry1 objectAtIndex:i2] intValue]) {
                                     double yp = [[[valAry objectAtIndex:i] objectForKey:@"VAL1"] doubleValue];
-                                    NSLog(@"VAL1 = %@",[[valAry objectAtIndex:i] objectForKey:@"VAL1"]);
-                                    NSLog(@"yp = %f",yp);
                                     [chart.annotations addObject:[self setChartAnnotation:chart xp:i yp:yp eventId:[[eventAry objectAtIndex:i] objectForKey:@"EVENTID1"]chartNam:chartCount]];
                                 }
                             }
@@ -489,8 +486,6 @@ BOOL chartDiaryBool;
                 
             //単位が複数あった場合
             }else{
-                NSLog(@"eventAry = %@",eventAry);
-                NSLog(@"chartData = %@",chartData);
                 //軸を増やす用のパーツを用意する。(最大4本)
                 //XuniAxis *axis1;
                 XuniAxis *axis2;
@@ -510,7 +505,6 @@ BOOL chartDiaryBool;
                     int page3 = 3+(([self.pageCount intValue]-1)*4);
                     int page4 = 4+(([self.pageCount intValue]-1)*4);
                     
-                    //NSLog(@"panelNum = %@ \n pageCount = %@",panelNum,self.pageCount);
                     if (page1 == panelInt) {
                         if ([[userDataDic objectForKey:@"DATASETCD"]  isEqual: @"0"]) {
                             chartBool1 = NO;
@@ -701,8 +695,6 @@ BOOL chartDiaryBool;
                         for(int i2 = 0; i2 < eventAry1.count; i2++){
                             if (i == [[eventAry1 objectAtIndex:i2] intValue]) {
                                 double yp = [[[valAry objectAtIndex:i] objectForKey:@"VAL1"] doubleValue];
-                                NSLog(@"VAL1 = %@",[[valAry objectAtIndex:i] objectForKey:@"VAL1"]);
-                                NSLog(@"yp = %f",yp);
                                 [chart.annotations addObject:[self setChartAnnotation:chart xp:i yp:yp eventId:[[eventAry objectAtIndex:i] objectForKey:@"EVENTID1"]chartNam:chartCount]];
                             }
                         }
@@ -781,7 +773,6 @@ BOOL chartDiaryBool;
     
     int chartCount = chartNam;
     // Image annotation.
-    NSLog(@"diaryDic = %@",diaryDic);
     //軸が少ないがそれよりグラフ数が多い場合の処理
     if (chart.axesArray.count == 2) {
         if (chartCount > 2) {
@@ -845,7 +836,6 @@ BOOL chartDiaryBool;
 {
     FlexChart *chart = (FlexChart *)[self.view viewWithTag:chartTag];
     XuniChartHitTestInfo *hitTest = [chart hitTest:point];
-    //NSLog(@"%f : %f",hitTest.point.x,hitTest.point.y);
     return false;
 }
 
@@ -898,7 +888,6 @@ numberOfRowsInComponent:(NSInteger)component{
 {
     NSInteger selectedRow = [pickerView selectedRowInComponent:0];
     pickerSelectInt = selectedRow;
-    NSLog(@"%ld", (long)selectedRow);
 }
 
 - (IBAction)backBtn:(id)sender {
