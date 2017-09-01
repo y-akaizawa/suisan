@@ -23,7 +23,6 @@ float imageX;//画像の位置保存用X
 float imageY;//画像の位置保存用Y
 int topicLabelWidth;
 int resLabelWidth;
-NSTimer *timer;//テーブル表示用タイマー
 
 NSString *openTopicId = @"0";//もっと見る状態のtopicidを格納
 NSString *chatType = @"";//話題か返信かtopic or res
@@ -73,7 +72,12 @@ BOOL startCheck;//画面初期表示チェック(画面の読み込みに必要)
     self.chatTableView.separatorColor = [UIColor clearColor];
     self.chatTableView.bounces = YES;
     imageFlag = NO;
-    self.adminNameLabel.text = [NSString stringWithFormat:@"管理人：%@",self.adminName];
+    if([self.adminName  isEqual: @""]){
+        self.adminNameLabel.hidden = YES;
+    }else{
+        self.adminNameLabel.text = [NSString stringWithFormat:@"管理人：%@",self.adminName];
+    }
+    
     self.adminNameLabel.adjustsFontSizeToFitWidth = YES;
     self.adminNameLabel.minimumScaleFactor = 5.f/30.f;
     startCheck = NO;
@@ -92,19 +96,18 @@ BOOL startCheck;//画面初期表示チェック(画面の読み込みに必要)
     [super didReceiveMemoryWarning];
     // Dispose of any resources that can be recreated.
 }
--(void) timerInfo:(NSTimer *)timer
-{
+-(void) timerInfo:(NSTimer *)timer{
     [self updateVisibleCells];
 }
 -(void)getChatAry{
-    NSLog(@"bbbbbbbbbbbbbb");
     [Common showSVProgressHUD:@""];
-    //チャットデータ全収納用配列を作成、初期化
-    [self.allChatAry removeAllObjects];
-    self.allChatAry = [[NSMutableArray alloc] initWithCapacity:0];
-    [self.chatAry removeAllObjects];
-    self.chatAry = [[NSMutableArray alloc] initWithCapacity:0];
+    
     dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^{
+        //チャットデータ全収納用配列を作成、初期化
+        [self.allChatAry removeAllObjects];
+        self.allChatAry = [[NSMutableArray alloc] initWithCapacity:0];
+        [self.chatAry removeAllObjects];
+        self.chatAry = [[NSMutableArray alloc] initWithCapacity:0];
         //話題データ取得
         self.chatAry = [PHPConnection getThreadTopicList:self.threadId];
         dispatch_async(dispatch_get_main_queue(), ^{
@@ -127,25 +130,13 @@ BOOL startCheck;//画面初期表示チェック(画面の読み込みに必要)
                 }
                 allCount++;
             }
+            if ([self.timer  isValid] == NO) {
+                self.timer = [NSTimer scheduledTimerWithTimeInterval:1.0 target:self selector:@selector(timerInfo:) userInfo:nil repeats:YES];
+                [self.timer fire];
+            }
             [self.chatTableView reloadData];
             [self updateVisibleCells];
-            if (timer.valid == NO) {
-                timer = [NSTimer
-                         // タイマーイベントを発生させる感覚。「1.5」は 1.5秒 型は float
-                         scheduledTimerWithTimeInterval:1.0
-                         // 呼び出すメソッドの呼び出し先(selector) self はこのファイル(.m)
-                         target:self
-                         // 呼び出すメソッド名。「:」で自分自身(タイマーインスタンス)を渡す。
-                         // インスタンスを渡さない場合は、「timerInfo」
-                         selector:@selector(timerInfo:)
-                         // 呼び出すメソッド内で利用するデータが存在する場合は設定する。ない場合は「nil」
-                         userInfo:nil
-                         // 上記で設定した秒ごとにメソッドを呼び出す場合は、「YES」呼び出さない場合は「NO」
-                         repeats:YES
-                         ];
-                [timer isValid];
-            }
-            
+            self.chatTableView.userInteractionEnabled = YES;
             [Common dismissSVProgressHUD];
         });
     });
@@ -166,7 +157,12 @@ BOOL startCheck;//画面初期表示チェック(画面の読み込みに必要)
 {
     //リストの配列番号取得
     //allTopicListAryからリストの配列番号の要素をNSDictionaryで取り出す
-    NSDictionary *cellDic = [self.allChatAry objectAtIndex:indexPath.row];
+    NSDictionary *cellDic;
+    if (self.allChatAry.count == 0) {
+        cellDic = nil;
+    }else{
+        cellDic = [self.allChatAry objectAtIndex:indexPath.row];
+    }
     UILabel *l = [[UILabel alloc] initWithFrame:CGRectMake(0, 0, 0, 40)];
     NSString *memoStr = @"";
     if([cellDic.allKeys containsObject:@"TOPICID"]){
@@ -192,15 +188,11 @@ BOOL startCheck;//画面初期表示チェック(画面の読み込みに必要)
     if (indexPath.row == self.allChatAry.count-1) {
         labelHeight = labelHeight + 10;
     }
-    
-    
-    
     int	resCount = 0;
     if([cellDic.allKeys containsObject:@"RESCOUNT"]){
         //"RESCOUNT"の数値を取得しておく
         resCount = [[cellDic objectForKey:@"RESCOUNT"] intValue];
     }
-    
     
     //連想配列の要素に特定のキーがあるかどうかをチェック("TOPICID"が存在すれば見出し、しなければ返信)
     if([cellDic.allKeys containsObject:@"TOPICID"]){
@@ -289,7 +281,6 @@ BOOL startCheck;//画面初期表示チェック(画面の読み込みに必要)
             }
         }
     }
-
 }
 //セル内容
 - (UITableViewCell *)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath
@@ -309,7 +300,14 @@ BOOL startCheck;//画面初期表示チェック(画面の読み込みに必要)
     cell6.selectionStyle = UITableViewCellSelectionStyleNone;
     //リストの配列番号取得
     //allTopicListAryからリストの配列番号の要素をNSDictionaryで取り出す
-    NSDictionary *cellDic = [self.allChatAry objectAtIndex:indexPath.row];
+    NSLog(@"self.allChatAry = %ld",(long)self.allChatAry.count);
+    NSLog(@"indexPath.row = %ld",(long)indexPath.row);
+    NSDictionary *cellDic;
+    if (self.allChatAry.count == 0) {
+        cellDic = nil;
+    }else{
+        cellDic = [self.allChatAry objectAtIndex:indexPath.row];
+    }
     NSString *memoStr = @"";
     if([cellDic.allKeys containsObject:@"TOPICID"]){
         if([[cellDic objectForKey:@"DELSTATUS"]  isEqual: @""]){
@@ -1424,6 +1422,7 @@ didFinishPickingMediaWithInfo:(NSDictionary *)info {
 {
     [refreshControl beginRefreshing];
     // ここの間に更新のロジックを書く
+    self.chatTableView.userInteractionEnabled = NO;
     [self getChatAry];
     [refreshControl endRefreshing];
 }
@@ -1961,8 +1960,8 @@ didFinishPickingMediaWithInfo:(NSDictionary *)info {
 }
 - (void)scrollViewWillBeginDragging:(UIScrollView *)scrollView
 {
-    if ([timer isValid]) {
-        [timer invalidate];
+    if ([self.timer isValid] == YES) {
+        [self.timer invalidate];
     }
 }
 

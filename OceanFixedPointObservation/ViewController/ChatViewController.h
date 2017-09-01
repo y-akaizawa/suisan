@@ -41,4 +41,6 @@
 @property (weak, nonatomic) IBOutlet UILabel *adminNameLabel;
 @property (weak, nonatomic) IBOutlet UILabel *accessLabel;
 
+
+@property (strong, nonatomic) NSTimer *timer;//テーブル表示用タイマー
 @end
